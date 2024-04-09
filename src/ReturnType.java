@@ -1,4 +1,6 @@
 public enum ReturnType {
     SUCCESS,
-    ERROR
+    PARSE_ERROR,
+    COMPILE_ERROR,
+    EMPTY_COMMAND
 }

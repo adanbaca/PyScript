@@ -5,15 +5,14 @@ import java.util.HashMap;
 public class Parser {
 
 
-    public void main(String[] args) {
+    public static void main(String[] args) {
         Grammar grammar = new Grammar();
         Scanner scanner = new Scanner(System.in);
-
-        String cmd = scanner.nextLine();
         while (true) {
+            String cmd = scanner.nextLine();
             CommandReturn retVal = grammar.parseCommand(cmd);
-            if (retVal.returnType == ReturnType.ERROR) {
-                break;
+            if (retVal.returnType == ReturnType.PARSE_ERROR || retVal.returnType == ReturnType.COMPILE_ERROR) {
+                System.out.println(retVal.msg);
             }
         }
     }
