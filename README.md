@@ -1,2 +1,2 @@
-Bad Bitches Only\n
-I love bad bitches thats my fuckin problem
+Bad Bitches Only
+- I love bad bitches thats my fuckin problem
