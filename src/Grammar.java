@@ -168,4 +168,108 @@ public class Grammar {
             } else if (ch == ')') {
                 // If the character is a closing parenthesis, evaluate the expression within the parentheses
                 while (!operators.isEmpty() && operators.peek() != '(') {
-                    evalu
+                    evaluateSubExpression(operands, operators);
+                }
+                // Pop the opening parenthesis from the operators stack
+                if (!operators.isEmpty() && operators.peek() == '(') {
+                    operators.pop();
+                }
+            } else if (ch != ' ') {
+                // If the character is an operator, evaluate the expression based on operator precedence
+                while (!operators.isEmpty() && precedence(ch) <= precedence(operators.peek())) {
+                    evaluateSubExpression(operands, operators);
+                }
+                operators.push(ch);
+            }
+        }
+
+        // Evaluate any remaining operators and operands
+        while (!operators.isEmpty()) {
+            evaluateSubExpression(operands, operators);
+        }
+
+        // The final result is the top element in the operands stack
+        return operands.pop();
+    }
+
+    private void evaluateSubExpression(Stack<Integer> operands, Stack<Character> operators) {
+        if (operands.size() < 2) {
+            throw new IllegalArgumentException("Invalid expression");
+        }
+        int num2 = operands.pop();
+        int num1 = operands.pop();
+        char op = operators.pop();
+        operands.push(applyOperator(num1, num2, op));
+    }
+
+    private Object evaluateBoolExpression(String expression) {
+        // Remove any whitespace from the expression
+        expression = expression.trim();
+
+        // Check if the expression is a single value or variable
+        if (expression.equals("true")) {
+            return true;
+        } else if (expression.equals("false")) {
+            return false;
+        } else if (globalVariables.containsKey(expression)) {
+            HashMap<String, Object> variableInfo = globalVariables.get(expression);
+            if (variableInfo.get("type").equals("bool")) {
+                return variableInfo.get("val");
+            } else {
+                throw new IllegalArgumentException("Variable '" + expression + "' is not of type boolean");
+            }
+        }
+
+        // Check if the expression starts with 'not'
+        if (expression.startsWith("not")) {
+            String operand = expression.substring(3).trim();
+            return !(boolean) evaluateBoolExpression(operand);
+        }
+
+        // Split the expression by the 'or' operator
+        String[] orParts = expression.split("\\s+or\\s+");
+
+        // Evaluate each part of the 'or' expression
+        for (String part : orParts) {
+            // Split the part by the 'and' operator
+            String[] andParts = part.split("\\s+and\\s+");
+
+            // Evaluate each part of the 'and' expression
+            boolean andResult = true;
+            for (String andPart : andParts) {
+                andPart = andPart.trim();
+                boolean value = (boolean) evaluateBoolExpression(andPart);
+                if (!value) {
+                    andResult = false;
+                    break;
+                }
+            }
+
+            if (andResult) {
+                return true;
+            }
+        }
+
+        // If none of the 'or' parts evaluate to true, return false
+        return false;
+    }
+    private int precedence(char operator) {
+        return switch (operator) {
+            case '+', '-' -> 1;
+            case '*', '/', '%' -> 2;
+            default -> 0;
+        };
+    }
+
+    private int applyOperator(int num1, int num2, char operator) {
+        return switch (operator) {
+            case '+' -> num1 + num2;
+            case '-' -> num1 - num2;
+            case '*' -> num1 * num2;
+            case '/' -> num1 / num2;
+            case '%' -> num1 % num2;
+            default -> 0;
+        };
+    }
+
+}
