@@ -11,19 +11,6 @@ public class Grammar {
     private Stack<String> blockStack = new Stack<String>();
     public HashMap<String, HashMap<String, Object>> globalVariables= new HashMap<String, HashMap<String, Object>>();
 
-    public CommandReturn parseCommand(String cmd) {
-        String[] cmdParts = cmd.split("\\s+");
-        if (cmdParts.length == 0) {
-            return new CommandReturn(ReturnType.EMPTY_COMMAND, "");
-        }
-        String firstExpr = cmdParts[0];
-
-        return switch (firstExpr) {
-            case "let" -> validateLet(cmdParts);
-            default -> new CommandReturn(ReturnType.PARSE_ERROR, "unable to read command");
-        };
-    }
-
     /**
      * validates a let statement and assigns the variable
      * @param cmdParts is a let statement split by whitespace
@@ -45,7 +32,7 @@ public class Grammar {
     //  ex:
     //  let x = 5
     //  globalVariables = {"x": {"type": "int", "val": 5}}
-    private CommandReturn validateLet(String[] cmdParts) {
+    CommandReturn validateLet(String[] cmdParts) {
         if (cmdParts.length < 4) {
             return new CommandReturn(ReturnType.PARSE_ERROR, "invalid let statement");
         }
@@ -63,9 +50,11 @@ public class Grammar {
         String expression = String.join(" ", Arrays.copyOfRange(cmdParts, 3, cmdParts.length));
 
         // Define regex patterns for variable name and expression
-        Pattern variableNamePattern = Pattern.compile("^[a-zA-Z]\\w*$");
-        Pattern intExpressionPattern = Pattern.compile("^(?:\\(\\s*(?:\\(\\s*(?:\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\d+|[a-zA-Z]\\w*))*\\s*\\)|\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\(\\s*(?:\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\d+|[a-zA-Z]\\w*))*\\s*\\)|\\d+|[a-zA-Z]\\w*))*\\s*\\)|\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\(\\s*(?:\\(\\s*(?:\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\d+|[a-zA-Z]\\w*))*\\s*\\)|\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\(\\s*(?:\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\d+|[a-zA-Z]\\w*))*\\s*\\)|\\d+|[a-zA-Z]\\w*))*\\s*\\)|\\d+|[a-zA-Z]\\w*))*$");        Pattern stringExpressionPattern = Pattern.compile("^\"[^\"]*\"$");
-        Pattern boolExpressionPattern = Pattern.compile("^(?:true|false|[a-zA-Z]\\w*|not\\s+(?:true|false|[a-zA-Z]\\w*))(?:\\s+(?:and|or)\\s+(?:true|false|[a-zA-Z]\\w*|not\\s+(?:true|false|[a-zA-Z]\\w*)))*$");
+        Pattern variableNamePattern = Pattern.compile("^[a-zA-Z]\\w*[a-zA-Z_]\\w*$");
+        Pattern integerPattern = Pattern.compile("[0-9]");
+        //Pattern intExpressionPattern = Pattern.compile("^(?:\\(\\s*(?:\\(\\s*(?:\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\d+|[a-zA-Z]\\w*))*\\s*\\)|\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\(\\s*(?:\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\d+|[a-zA-Z]\\w*))*\\s*\\)|\\d+|[a-zA-Z]\\w*))*\\s*\\)|\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\(\\s*(?:\\(\\s*(?:\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\d+|[a-zA-Z]\\w*))*\\s*\\)|\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\(\\s*(?:\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\d+|[a-zA-Z]\\w*))*\\s*\\)|\\d+|[a-zA-Z]\\w*))*\\s*\\)|\\d+|[a-zA-Z]\\w*))*$");
+        //Pattern stringExpressionPattern = Pattern.compile("^\"[^\"]*\"$");
+        //Pattern boolExpressionPattern = Pattern.compile("^(?:true|false|[a-zA-Z]\\w*|not\\s+(?:true|false|[a-zA-Z]\\w*))(?:\\s+(?:and|or)\\s+(?:true|false|[a-zA-Z]\\w*|not\\s+(?:true|false|[a-zA-Z]\\w*)))*$");
         Matcher variableNameMatcher = variableNamePattern.matcher(variableName);
 
         if (!variableNameMatcher.matches()) {
@@ -270,5 +259,7 @@ public class Grammar {
             default -> 0;
         };
     }
+
+
 
 }
