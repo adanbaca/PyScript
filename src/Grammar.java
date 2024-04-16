@@ -52,9 +52,9 @@ public class Grammar {
         // Define regex patterns for variable name and expression
         Pattern variableNamePattern = Pattern.compile("^[a-zA-Z]\\w*[a-zA-Z_]\\w*$");
         Pattern integerPattern = Pattern.compile("[0-9]");
-        //Pattern intExpressionPattern = Pattern.compile("^(?:\\(\\s*(?:\\(\\s*(?:\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\d+|[a-zA-Z]\\w*))*\\s*\\)|\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\(\\s*(?:\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\d+|[a-zA-Z]\\w*))*\\s*\\)|\\d+|[a-zA-Z]\\w*))*\\s*\\)|\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\(\\s*(?:\\(\\s*(?:\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\d+|[a-zA-Z]\\w*))*\\s*\\)|\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\(\\s*(?:\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\d+|[a-zA-Z]\\w*))*\\s*\\)|\\d+|[a-zA-Z]\\w*))*\\s*\\)|\\d+|[a-zA-Z]\\w*))*$");
-        //Pattern stringExpressionPattern = Pattern.compile("^\"[^\"]*\"$");
-        //Pattern boolExpressionPattern = Pattern.compile("^(?:true|false|[a-zA-Z]\\w*|not\\s+(?:true|false|[a-zA-Z]\\w*))(?:\\s+(?:and|or)\\s+(?:true|false|[a-zA-Z]\\w*|not\\s+(?:true|false|[a-zA-Z]\\w*)))*$");
+        Pattern intExpressionPattern = Pattern.compile("^(?:\\(\\s*(?:\\(\\s*(?:\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\d+|[a-zA-Z]\\w*))*\\s*\\)|\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\(\\s*(?:\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\d+|[a-zA-Z]\\w*))*\\s*\\)|\\d+|[a-zA-Z]\\w*))*\\s*\\)|\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\(\\s*(?:\\(\\s*(?:\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\d+|[a-zA-Z]\\w*))*\\s*\\)|\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\(\\s*(?:\\d+|[a-zA-Z]\\w*)(?:\\s*[+\\-*/%]\\s*(?:\\d+|[a-zA-Z]\\w*))*\\s*\\)|\\d+|[a-zA-Z]\\w*))*\\s*\\)|\\d+|[a-zA-Z]\\w*))*$");
+        Pattern stringExpressionPattern = Pattern.compile("^\"[^\"]*\"$");
+        Pattern boolExpressionPattern = Pattern.compile("^(?:true|false|[a-zA-Z]\\w*|not\\s+(?:true|false|[a-zA-Z]\\w*))(?:\\s+(?:and|or)\\s+(?:true|false|[a-zA-Z]\\w*|not\\s+(?:true|false|[a-zA-Z]\\w*)))*$");
         Matcher variableNameMatcher = variableNamePattern.matcher(variableName);
 
         if (!variableNameMatcher.matches()) {

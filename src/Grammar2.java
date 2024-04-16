@@ -1,23 +1,29 @@
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Stack;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
 class Tokenizer {
     public enum Type {
         INT("^\\d+"),
-        VARNAME("^[a-zA-Z]\\w*"),
         STRING("^\"[^\"]*\""),
-        BOOLEAN("^(True|False)"),
-        OPERATOR("^[+\\-*/%=]"),
+        BOOLEAN("^(True|False)\\b"),
+        COMPARISON_OPERATOR("^(==|!=|<=|>=|<|>)"),
+        ASSIGNMENT("^="),
+        NUM_OPERATOR("^[+\\-*/%]"),
+        BOOL_OPERATOR("^(not|and|or)\\b"),
+        BRACE_OPEN("^\\{"),
+        BRACE_CLOSE("^\\}"),
         PAREN_OPEN("^\\("),
         PAREN_CLOSE("^\\)"),
-        LOOP("^while"),
-        IF("^if"),
-        ELSE("^else"),
-        ELIF("^elif"),
-        LET("^let"),
+        LOOP("^while\\b"),
+        PRINT("^print\\b"),
+        IF("^if\\b"),
+        ELSE("^else\\b"),
+        ELIF("^elif\\b"),
+        LET("^let\\b"),
+        VAR_NAME("^[a-zA-Z]\\w*"),
         WHITESPACE("^\\s+"),
         EOF("");
 
@@ -27,7 +33,7 @@ class Tokenizer {
         }
     }
 
-    private class Token {
+    public class Token {
         public Type type;
         public String lexeme;
 
@@ -42,83 +48,84 @@ class Tokenizer {
         }
     }
 
-}
+    private ArrayList<Token> tokenize(String input) {
+        ArrayList<Token> tokens = new ArrayList<>();
+        while (!input.isEmpty()) {
+            boolean matched = false;
 
+            for (Type type : Type.values()) {
+                Pattern pattern = Pattern.compile(type.pattern);
+                Matcher matcher = pattern.matcher(input);
+                if (matcher.find() && matcher.start() == 0) {
+                    matched = true;
+                    String lexeme = matcher.group();
+                    tokens.add(new Token(type, lexeme));
+                    input = input.substring(lexeme.length());
+                    if (type == Type.WHITESPACE) {
+                        // Ignore whitespace tokens for the output
+                        tokens.remove(tokens.size() - 1);
+                    }
+                    break;
+                }
+            }
 
-public class Grammar2 {
-    // Define regex patterns for variable name and expression
-//    Pattern variableNamePattern = Pattern.compile("^[a-zA-Z]\\w*[a-zA-Z_]\\w*$");
-    
-    private static Pattern bool = Pattern.compile("^t$|^f$");
-
-    private static Pattern ints = Pattern.compile("^\\d+$");
-    private static Pattern var = Pattern.compile("^\\w+$");
-
-
-    private Stack<String> blockStack = new Stack<String>();
-    public HashMap<String, HashMap<String, Object>> globalVariables= new HashMap<String, HashMap<String, Object>>();
-
-
-    public static boolean program(String[] input){
-        return block(input);
-    }
-
-    public static boolean block(String[] input){
-        if (statement(input)) {
-            return true;
-        }
-        else if (statementBlock(input)){
-            return true;
-        }
-        return false;
-    }
-
-    public static boolean statementBlock(String[] input){
-        return false;
-
-    }
-
-    public static boolean statement(String[] input){
-        if (varDec(input)){
-            return true;
-        }
-        else if (assignment(input)){
-            return true;
-        }
-        else if (conditional(input)) {
-            return true;
-        }
-        else if (loop(input)){
-            return true;
-        }
-        else if (printStatement(input)){
-            return true;
-        }
-        return false;
-
-    }
-    public static boolean varDec(String[] input){
-        if (input.length==7&&input[0].equals("let")&&input[4].equals("=")) {
-            if (varName(input[2]) && expr(input[6])){
-                return true;
+            if (!matched) {
+                throw new IllegalArgumentException("Unexpected character in input: " + input);
             }
         }
-        return false;
+
+        tokens.add(new Token(Type.EOF, ""));  // End of file token
+        return tokens;
     }
 
-    public static boolean assignment(String[] input){
-        if (input[1].equals("=")){
-            if input[0].
+    public static void main(String[] args) {
+        Tokenizer tokenizer = new Tokenizer();
+        String input = "notTrue";
+        ArrayList<Token> tokens = tokenizer.tokenize(input);
+        for (Token token : tokens) {
+            System.out.println(token);
         }
     }
 
-    public static boolean cond(String[] input){
+}
 
+public class Grammar2 {
+    private List<Tokenizer.Token> tokens;
+    private int curr = 0;
+
+    public Grammar2(List<Tokenizer.Token> tokens){
+        this.tokens = tokens;
     }
 
+    private boolean match(Tokenizer.Type expected){
+        if (atEnd()){
+            return false;
+        }
+        if (tokens.get(curr).type != expected){
+            return false;
+        }
+        curr++;
+        return true;
+    }
 
+    private boolean atEnd(){
+        return curr >= tokens.size() || tokens.get(curr).type == Tokenizer.Type.EOF;
+    }
 
-
+//    public boolean parse() throws ParseException {
+//        while (!atEnd()){
+//            if (!parseProgram()){
+//                throw new ParseException("Syntax Error", 0);
+//                return false;
+//            }
+//        }
+//        return true;
+//    }
+//
+//    private boolean parseProgram() {
+//
+//        return false;
+//    }
 }
 
 

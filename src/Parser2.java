@@ -6,7 +6,7 @@ public class Parser2 {
         Scanner scan = new Scanner(System.in);
         System.out.print(">> ");
         String input = scan.nextLine();
-        while (!input.equals("exit"){
+        while (!input.equals("exit")){
             String[] split  = input.split(" ");
             // process command here
 
