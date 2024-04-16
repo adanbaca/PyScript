@@ -82,7 +82,7 @@ class Tokenizer {
 
     public static void main(String[] args) {
         Tokenizer tokenizer = new Tokenizer();
-        String input = "notTrue";
+        String input = "let x = (a + b)";
         ArrayList<Token> tokens = tokenizer.tokenize(input);
         for (Token token : tokens) {
             System.out.println(token);
@@ -210,6 +210,8 @@ public class Grammar2 {
         }
         return parseExpression();
     }
+
+    
 }
 
 
