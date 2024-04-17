@@ -50,7 +50,7 @@ class Tokenizer {
         }
     }
 
-    private ArrayList<Token> tokenize(String input) {
+    public ArrayList<Token> tokenize(String input) {
         ArrayList<Token> tokens = new ArrayList<>();
         while (!input.isEmpty()) {
             boolean matched = false;
@@ -80,19 +80,24 @@ class Tokenizer {
         return tokens;
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws ParseException {
         Tokenizer tokenizer = new Tokenizer();
-        String input = "let x = (a + b)";
+        String input = "let x = (a and True)";
         ArrayList<Token> tokens = tokenizer.tokenize(input);
+        Grammar2 grammar = new Grammar2(tokens);
+
         for (Token token : tokens) {
             System.out.println(token);
         }
+        grammar.parse();
     }
 
 }
 
 public class Grammar2 {
-    private List<Tokenizer.Token> tokens;
+
+
+    public List<Tokenizer.Token> tokens;
     private int curr = 0;
 
     public Grammar2(List<Tokenizer.Token> tokens){
@@ -108,6 +113,10 @@ public class Grammar2 {
         }
         curr++;
         return true;
+    }
+
+    public void addTokens(List<Tokenizer.Token> newTokens) {
+        tokens.addAll(newTokens);
     }
 
     private boolean atEnd(){
@@ -133,7 +142,7 @@ public class Grammar2 {
                 return false;
             }
         }
-        return false;
+        return true;
     }
 
     private boolean parseStatement() {
@@ -211,7 +220,165 @@ public class Grammar2 {
         return parseExpression();
     }
 
-    
+    private boolean parseExpression(){
+        int oldCur = curr;
+        if (parseNumExpression()) {
+            return true;
+        }
+        curr = oldCur;
+        oldCur = curr;
+        if (parseBoolExpression()){
+            return true;
+        }
+//        else if (parseStrExpression()){
+            // evaluate string expressi}
+        curr = oldCur;
+        oldCur = curr;
+        if (match(Tokenizer.Type.VAR_NAME)){
+            return true;
+        }
+        return false;
+    }
+
+    private boolean parseNumExpression() {
+        // Parse a term
+        if (!parseTerm()) {
+            return false;
+        }
+
+        // Check for additional terms
+        while (match(Tokenizer.Type.NUM_OPERATOR)) {
+            if (!parseTerm()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean parseTerm() {
+        // Check for a factor
+        if (!parseFactor()) {
+            return false;
+        }
+
+        // Check for additional factors
+        while (match(Tokenizer.Type.NUM_OPERATOR)) {
+            if (!parseFactor()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean parseFactor() {
+        // Check for a number
+        if (match(Tokenizer.Type.INT)) {
+            return true;
+        }
+
+        // Check for a variable name
+        if (match(Tokenizer.Type.VAR_NAME)) {
+            return true;
+        }
+
+        // Check for a parenthesized expression
+        if (match(Tokenizer.Type.PAREN_OPEN)) {
+            if (!parseNumExpression()) {
+                return false;
+            }
+            if (!match(Tokenizer.Type.PAREN_CLOSE)) {
+                return false;
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean parseBoolExpression() {
+        // Parse a bool term
+        if (!parseBoolTerm()) {
+            return false;
+        }
+
+        // Check for additional bool terms
+        while (match(Tokenizer.Type.BOOL_OPERATOR)) {
+            if (!parseBoolTerm()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean parseBoolTerm() {
+        // Check for a bool factor
+        if (!parseBoolFactor()) {
+            return false;
+        }
+
+        // Check for additional bool factors
+        while (match(Tokenizer.Type.BOOL_OPERATOR)) {
+            if (!parseBoolFactor()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean parseBoolFactor() {
+        // Check for a boolean literal
+        if (match(Tokenizer.Type.BOOLEAN)) {
+            return true;
+        }
+
+        // Check for a comparison expression
+        if (parseComparisonExpression()) {
+            return true;
+        }
+
+        // Check for a variable name
+        if (match(Tokenizer.Type.VAR_NAME)) {
+            return true;
+        }
+
+        // Check for a parenthesized bool expression
+        if (match(Tokenizer.Type.PAREN_OPEN)) {
+            if (!parseBoolExpression()) {
+                return false;
+            }
+            if (!match(Tokenizer.Type.PAREN_CLOSE)) {
+                return false;
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean parseComparisonExpression() {
+        // Parse the first operand
+        int oldCur = curr;
+        if (!parseNumExpression()) {
+            return false;
+        }
+        curr = oldCur;
+        oldCur = curr;
+        // Check for a comparison operator
+        if (!match(Tokenizer.Type.COMPARISON_OPERATOR)) {
+            return false;
+        }
+
+        if (!parseNumExpression()) {
+            return false;
+        }
+        curr = oldCur;
+
+        return true;
+    }
 }
 
 
