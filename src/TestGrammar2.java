@@ -27,6 +27,7 @@ public class TestGrammar2 {
                     System.out.println(token);
                 }
                 grammar.parse();
+                System.out.println(grammar.globalVariables);
 
             }
         } catch (IOException e) {

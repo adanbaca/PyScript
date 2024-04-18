@@ -1,13 +1,11 @@
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Scanner;
+import java.util.*;
 
 
 public class Execute {
     private int curr = 0;
     private List<Tokenizer.Token> tokens;
     public Execute() {}
+    private boolean ranChain;
 
 
     public HashMap<String, HashMap<String, Object>> executeBoolExpression(
@@ -58,16 +56,14 @@ public class Execute {
         if (token.type == Tokenizer.Type.BOOLEAN) {
             curr++;
             return Boolean.parseBoolean(token.lexeme);
-        } else if (token.type == Tokenizer.Type.VAR_NAME) {
+        } else if (token.type == Tokenizer.Type.VAR_NAME&&(token.type == Tokenizer.Type.VAR_NAME && globalVariables.get(token.lexeme).get("type").equals("bool"))) {
             curr++;
             String varName = token.lexeme;
             if (!globalVariables.containsKey(varName)) {
                 throw new IllegalArgumentException("Variable not found: " + varName);
             }
             Object varValue = globalVariables.get(varName).get("val");
-            if (!(varValue instanceof Boolean)) {
-                throw new IllegalArgumentException("Variable is not of boolean type: " + varName);
-            }
+
             return (boolean) varValue;
         } else if (token.type == Tokenizer.Type.BOOL_NOT) {
             curr++;
@@ -316,10 +312,11 @@ public class Execute {
             }
         } else if (token.type == Tokenizer.Type.BOOLEAN || token.type == Tokenizer.Type.BOOL_OPERATOR || (token.type == Tokenizer.Type.VAR_NAME && globalVariables.get(token.lexeme).get("type").equals("bool"))) {
             result = (evaluateBoolExpression(globalVariables)) ? "True": "False";
-        } else {
+        }else if(token.type == Tokenizer.Type.INPUT) {
+            result = evaluateInputExpression(globalVariables);
+        }else {
             throw new IllegalArgumentException("Unsupported expression type for print: " + token.type);
         }
-
 
         if (curr < tokens.size() && tokens.get(curr).type == Tokenizer.Type.PAREN_CLOSE) {
             curr++;
@@ -329,5 +326,97 @@ public class Execute {
 
         return result;
     }
+    public HashMap<String, HashMap<String, Object>> executeConditionalExpression(
+            HashMap<String, HashMap<String, Object>> globalVariables,
+            Stack<ArrayList<List<Tokenizer.Token>>> conditionalBlockStack,
+            Stack<ArrayList<List<Tokenizer.Token>>> conditionalStmtStack) {
+
+        boolean result;
+        int index = -1;
+        ranChain=false;
+        ArrayList<List<Tokenizer.Token>> conditions = conditionalStmtStack.pop();
+        ArrayList<List<Tokenizer.Token>> blocks = conditionalBlockStack.pop();
+        for (List<Tokenizer.Token> condition : conditions){
+            if (condition.getFirst().type==Tokenizer.Type.ELSE){
+                index = conditions.lastIndexOf(condition);
+                ranChain=true;
+                break;
+            }
+            curr=0;
+            tokens=condition;
+            result = evaluateBoolExpression(globalVariables);
+            if (result){
+                index = conditions.lastIndexOf(condition);
+                ranChain=true;
+                break;
+            }
+        }
+        String varName;
+        Object[] res;
+        if (index>-1){
+           for (int i =1; i<blocks.size()-1;i++){
+            curr = 0;
+            tokens = blocks.get(i);
+            if(tokens.getFirst().type == Tokenizer.Type.LET||tokens.getFirst().type == Tokenizer.Type.VAR_NAME){
+                varName = (tokens.get(0).type == Tokenizer.Type.LET) ? tokens.get(1).lexeme : tokens.get(0).lexeme;
+                curr = (tokens.get(0).type == Tokenizer.Type.LET) ? 3 : 2;
+                res = evaluateConditionalExpression(globalVariables);
+                HashMap<String, Object> varData = new HashMap<>();
+                varData.put("val", res[0]);
+                varData.put("type", res[1]);
+                globalVariables.put(varName, varData);
+            } else if (tokens.getFirst().type == Tokenizer.Type.PRINT){
+                curr = 2;
+                String printable = evaluatePrintExpression(globalVariables);
+                System.out.println(printable);
+            }else{
+                throw new IllegalArgumentException("Invalid input inside conditional statement");
+            }
+           }
+        }
+
+
+        return globalVariables;
+    }
+    private Object[] evaluateConditionalExpression(HashMap<String, HashMap<String, Object>> globalVariables) {
+        if (curr >= tokens.size()) {
+            throw new IllegalArgumentException("Print statement missing an expression.");
+        }
+        Object[] ret = new Object[2];
+        Tokenizer.Token token = tokens.get(curr);
+        Object result;
+        String type;
+
+        if (token.type == Tokenizer.Type.STRING || token.type == Tokenizer.Type.VAR_NAME && globalVariables.get(token.lexeme).get("type").equals("string")) {
+            result = evaluateStrExpression(globalVariables);
+            type = "string";
+        } else if (token.type == Tokenizer.Type.INT || (token.type == Tokenizer.Type.VAR_NAME && globalVariables.get(token.lexeme).get("type").equals("int"))) {
+            int oldCur = curr;
+            try {
+                result = (evaluateComparisonExpression(globalVariables)) ? "True" : "False";
+                type = "bool";
+            } catch (IllegalArgumentException e) {
+                // If comparison fails, evaluate as a numeric expression
+                curr = oldCur;  // Reset curr to re-evaluate this token as a numeric expression
+                result = evaluateNumExpression(globalVariables);
+                type = "int";
+            }
+        } else if (token.type == Tokenizer.Type.BOOLEAN || token.type == Tokenizer.Type.BOOL_OPERATOR || (token.type == Tokenizer.Type.VAR_NAME && globalVariables.get(token.lexeme).get("type").equals("bool"))) {
+            result = (evaluateBoolExpression(globalVariables)) ? "True" : "False";
+            type = "bool";
+        } else {
+            throw new IllegalArgumentException("Unsupported expression type for print: " + token.type);
+        }
+        ret[0]=result;
+        ret[1]=type;
+        return ret;
+    }
+    public boolean getRanChain(){
+        return ranChain;
+    }
+
+
+
+
 
 }

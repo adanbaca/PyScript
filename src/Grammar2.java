@@ -105,12 +105,14 @@ public class Grammar2 {
 
     public List<Tokenizer.Token> tokens;
     public HashMap<String, HashMap<String, Object>> globalVariables = new HashMap<String, HashMap<String, Object>>();
-    public Stack<ArrayList<List<Tokenizer.Token>>> conitionalBlockStack = new Stack<ArrayList<List<Tokenizer.Token>>>();
+    public Stack<ArrayList<List<Tokenizer.Token>>> conditionalBlockStack = new Stack<ArrayList<List<Tokenizer.Token>>>();
     public Stack<ArrayList<List<Tokenizer.Token>>> conditionalStmtStack = new Stack<ArrayList<List<Tokenizer.Token>>>();
-    public Stack<ArrayList<List<Tokenizer.Token>>> curConditionalBlockStack = new Stack<ArrayList<List<Tokenizer.Token>>>();
+    public ArrayList<List<Tokenizer.Token>> curConditionalBlockList = new ArrayList<List<Tokenizer.Token>>();
     public ArrayList<List<Tokenizer.Token>> curConditionalStmtsList = new ArrayList<List<Tokenizer.Token>>();
-    private Stack<Tokenizer.Token> bracketStack = new Stack<Tokenizer.Token>();
+    private Stack<Tokenizer.Type> bracketStack = new Stack<Tokenizer.Type>();
     private boolean inCondBlock = false;
+    private boolean condChain = false;
+    private boolean ranChain = false;
     private Execute exec = new Execute();
     public int curr = 0;
 
@@ -152,10 +154,45 @@ public class Grammar2 {
     }
 
     private boolean parseBlock(){
+        if (!(tokens.getFirst().type==Tokenizer.Type.ELIF)&&!(tokens.getFirst().type==Tokenizer.Type.ELSE)&&!inCondBlock){
+            condChain = false;
+            ranChain = false;
+            conditionalStmtStack.clear();
+            conditionalBlockStack.clear();
+        }
         while (!atEnd()){
             if (!parseStatement()){
                 return false;
             }
+        }
+        if (inCondBlock){
+            curConditionalBlockList.add(tokens);
+            if (tokens.getFirst().type==Tokenizer.Type.BRACE_CLOSE){
+                bracketStack.pop();
+                conditionalBlockStack.push((ArrayList<List<Tokenizer.Token>>) curConditionalBlockList.clone());
+                curConditionalBlockList.clear();
+                conditionalStmtStack.push((ArrayList<List<Tokenizer.Token>>) curConditionalStmtsList.clone());
+                curConditionalStmtsList.clear();
+                if (bracketStack.isEmpty() && atEnd()) {
+                    inCondBlock = false;
+                }
+            }
+        }
+        if (!inCondBlock && !conditionalBlockStack.isEmpty()){
+            try {
+                if((condChain&&!ranChain)||!condChain) {
+                    globalVariables = exec.executeConditionalExpression(globalVariables, conditionalBlockStack, conditionalStmtStack);
+                    ranChain = (exec.getRanChain()) ? true : ranChain;
+                    System.out.println("Returning");
+                    return true;
+                }
+            } catch (IllegalArgumentException _) {
+                System.out.println("parseConditionalError");
+            }
+        }
+        if (tokens.getFirst().type==Tokenizer.Type.ELSE){
+            condChain = false;
+            ranChain = false;
         }
         return true;
     }
@@ -163,7 +200,13 @@ public class Grammar2 {
     private boolean parseStatement() {
         if (match(Tokenizer.Type.LET)) {
             return parseVarDec();
-        } else if (match(Tokenizer.Type.IF)) {
+        } else if (match(Tokenizer.Type.IF)||match(Tokenizer.Type.ELIF)||match(Tokenizer.Type.ELSE)) {
+            if (tokens.getFirst().type==Tokenizer.Type.ELIF||tokens.getFirst().type==Tokenizer.Type.ELSE){
+                condChain = true;
+            }else{
+                condChain = false;
+                ranChain = false;
+            }
             curConditionalStmtsList.clear();
             return parseCond();
         } else if (match(Tokenizer.Type.LOOP)) {
@@ -171,7 +214,8 @@ public class Grammar2 {
         } else if (match(Tokenizer.Type.PRINT)) {
             if(parsePrint()){
                 try {
-                    exec.executePrintExpression(tokens, globalVariables);
+                    if (!inCondBlock) exec.executePrintExpression(tokens, globalVariables);
+                    else curConditionalBlockList.add(tokens);
                     System.out.println("Returning");
                     return true;
                 } catch (IllegalArgumentException _) {
@@ -182,6 +226,8 @@ public class Grammar2 {
         } else if (match(Tokenizer.Type.VAR_NAME)) {
             curr = 0;
             return parseAssign();
+        } else if (match(Tokenizer.Type.BRACE_CLOSE)&&inCondBlock){
+            return true;
         }
         return false;
     }
@@ -197,17 +243,14 @@ public class Grammar2 {
     }
 
     private boolean parseCond(){
-        if (!match(Tokenizer.Type.PAREN_OPEN)||!parseExpression()){
-            return false;
-        }
-        if (match(Tokenizer.Type.ELIF)){
-            return parseCond();
-        }
-        if (match(Tokenizer.Type.ELSE)){
+        if (tokens.get(0).type==Tokenizer.Type.ELSE){
             if (!match(Tokenizer.Type.BRACE_OPEN)){
                 return false;
             }
+            bracketStack.push(Tokenizer.Type.BRACE_OPEN);
             curConditionalStmtsList.add(tokens);
+        } else if(!match(Tokenizer.Type.PAREN_OPEN)||!parseExpression()){
+            return false;
         }
         inCondBlock = true;
         return true;
@@ -249,7 +292,7 @@ public class Grammar2 {
         if (parseNumExpression()) {
             if (curr == tokens.size()-1) {
                 try {
-                    globalVariables = exec.executeNumExpression(tokens, globalVariables);
+                    if (!inCondBlock) globalVariables = exec.executeNumExpression(tokens, globalVariables);
                     System.out.println("Returning");
                     return true;
                 } catch (IllegalArgumentException _) {
@@ -265,7 +308,7 @@ public class Grammar2 {
         if (parseBoolExpression()) {
             if (curr == tokens.size() - 1) {
                 try {
-                    globalVariables = exec.executeBoolExpression(tokens, globalVariables);
+                    if (!inCondBlock) globalVariables = exec.executeBoolExpression(tokens, globalVariables);
                     //            System.out.println("Returning");
                     System.out.println();
                     return true;
@@ -278,7 +321,8 @@ public class Grammar2 {
                     return true;
                 } else if (match(Tokenizer.Type.BRACE_OPEN) && (tokens.get(0).type == Tokenizer.Type.IF ||
                         tokens.get(0).type == Tokenizer.Type.ELIF)) {
-                    curConditionalStmtsList.add(tokens);
+                    bracketStack.push(Tokenizer.Type.BRACE_OPEN);
+                    curConditionalStmtsList.add(tokens.subList(1,curr-1));
                     return true;
                 }
 
@@ -289,7 +333,7 @@ public class Grammar2 {
         if (parseInputExpression()){
             if (curr == tokens.size()-1){
                 try {
-                    globalVariables = exec.executeInputExpression(tokens, globalVariables);
+                    if (!inCondBlock) globalVariables = exec.executeInputExpression(tokens, globalVariables);
                     //            System.out.println("Returning");
                     System.out.println();
                     return true;
@@ -306,7 +350,7 @@ public class Grammar2 {
         if (parseStrExpression() ){
             if (curr == tokens.size()-1){
                 try {
-                    globalVariables = exec.executeStrExpression(tokens, globalVariables);
+                    if (!inCondBlock) globalVariables = exec.executeStrExpression(tokens, globalVariables);
 //            System.out.println("Returning");
                     System.out.println();
                     return true;
