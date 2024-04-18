@@ -87,7 +87,7 @@ class Tokenizer {
 
     public static void main(String[] args) throws ParseException {
         Tokenizer tokenizer = new Tokenizer();
-        String input = "print(5>3)";
+        String input = "if(5>4){";
         ArrayList<Token> tokens = tokenizer.tokenize(input);
         Grammar2 grammar = new Grammar2(tokens);
 
@@ -105,10 +105,10 @@ public class Grammar2 {
 
     public List<Tokenizer.Token> tokens;
     public HashMap<String, HashMap<String, Object>> globalVariables = new HashMap<String, HashMap<String, Object>>();
-    private Stack<ArrayList<ArrayList<Tokenizer.Token>>> condBlockStack= new Stack<ArrayList<ArrayList<Tokenizer.Token>>>();
-    private Stack<ArrayList<ArrayList<Tokenizer.Token>>> condStmtStack= new Stack<ArrayList<ArrayList<Tokenizer.Token>>>();
-    private Stack<ArrayList<ArrayList<Tokenizer.Token>>> curBlockStack= new Stack<ArrayList<ArrayList<Tokenizer.Token>>>();
-    private Stack<ArrayList<ArrayList<Tokenizer.Token>>> curStmtStack= new Stack<ArrayList<ArrayList<Tokenizer.Token>>>();
+    public Stack<ArrayList<List<Tokenizer.Token>>> conitionalBlockStack = new Stack<ArrayList<List<Tokenizer.Token>>>();
+    public Stack<ArrayList<List<Tokenizer.Token>>> conditionalStmtStack = new Stack<ArrayList<List<Tokenizer.Token>>>();
+    public Stack<ArrayList<List<Tokenizer.Token>>> curConditionalBlockStack = new Stack<ArrayList<List<Tokenizer.Token>>>();
+    public ArrayList<List<Tokenizer.Token>> curConditionalStmtsList = new ArrayList<List<Tokenizer.Token>>();
     private Stack<Tokenizer.Token> bracketStack = new Stack<Tokenizer.Token>();
     private boolean inCondBlock = false;
     private Execute exec = new Execute();
@@ -152,7 +152,7 @@ public class Grammar2 {
     }
 
     private boolean parseBlock(){
-        while (!atEnd() && tokens.get(curr).type != Tokenizer.Type.BRACE_CLOSE){
+        while (!atEnd()){
             if (!parseStatement()){
                 return false;
             }
@@ -164,6 +164,7 @@ public class Grammar2 {
         if (match(Tokenizer.Type.LET)) {
             return parseVarDec();
         } else if (match(Tokenizer.Type.IF)) {
+            curConditionalStmtsList.clear();
             return parseCond();
         } else if (match(Tokenizer.Type.LOOP)) {
             return parseLoop();
@@ -196,10 +197,7 @@ public class Grammar2 {
     }
 
     private boolean parseCond(){
-        if (!match(Tokenizer.Type.PAREN_OPEN)||!parseExpression()||!match(Tokenizer.Type.PAREN_CLOSE)){
-            return false;
-        }
-        if (!match(Tokenizer.Type.BRACE_OPEN)){
+        if (!match(Tokenizer.Type.PAREN_OPEN)||!parseExpression()){
             return false;
         }
         if (match(Tokenizer.Type.ELIF)){
@@ -209,7 +207,9 @@ public class Grammar2 {
             if (!match(Tokenizer.Type.BRACE_OPEN)){
                 return false;
             }
+            curConditionalStmtsList.add(tokens);
         }
+        inCondBlock = true;
         return true;
     }
 
@@ -263,20 +263,26 @@ public class Grammar2 {
         curr = oldCur;
         oldCur = curr;
         if (parseBoolExpression()) {
-            if(curr == tokens.size()-1){
+            if (curr == tokens.size() - 1) {
                 try {
                     globalVariables = exec.executeBoolExpression(tokens, globalVariables);
-    //            System.out.println("Returning");
+                    //            System.out.println("Returning");
                     System.out.println();
                     return true;
                 } catch (IllegalArgumentException _) {
                     System.out.println("parseBoolError");
                 }
 
-            }else if (match(Tokenizer.Type.PAREN_CLOSE)&&tokens.get(0).type== Tokenizer.Type.PRINT){
-                return true;
-            }
+            } else if (match(Tokenizer.Type.PAREN_CLOSE)) {
+                if (tokens.get(0).type == Tokenizer.Type.PRINT) {
+                    return true;
+                } else if (match(Tokenizer.Type.BRACE_OPEN) && (tokens.get(0).type == Tokenizer.Type.IF ||
+                        tokens.get(0).type == Tokenizer.Type.ELIF)) {
+                    curConditionalStmtsList.add(tokens);
+                    return true;
+                }
 
+            }
         }
         curr = oldCur;
         oldCur = curr;
