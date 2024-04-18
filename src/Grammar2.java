@@ -15,7 +15,7 @@ class Tokenizer {
         COMPARISON_OPERATOR("^(==|!=|<=|>=|<|>)"),
         ASSIGNMENT("^="),
         NUM_OPERATOR("^[+\\-*/%]"),
-        BOOL_OPERATOR("^(not|and|or)\\b"),
+        BOOL_OPERATOR("^(and|or)\\b"),
         BOOL_NOT("^(not)\\b"),
         BRACE_OPEN("^\\{"),
         BRACE_CLOSE("^\\}"),
@@ -84,7 +84,7 @@ class Tokenizer {
 
     public static void main(String[] args) throws ParseException {
         Tokenizer tokenizer = new Tokenizer();
-        String input = "let x = True and False";
+        String input = "let x = True and not (False or True)";
         ArrayList<Token> tokens = tokenizer.tokenize(input);
         Grammar2 grammar = new Grammar2(tokens);
 
@@ -161,6 +161,7 @@ public class Grammar2 {
         } else if (match(Tokenizer.Type.PRINT)) {
             return parsePrint();
         } else if (match(Tokenizer.Type.VAR_NAME)) {
+            curr = 0;
             return parseAssign();
         }
         return false;
@@ -244,7 +245,7 @@ public class Grammar2 {
         if (parseStrExpression()){
             return true;
         }
-            // evaluate string expressi}
+        // evaluate string expressi}
         curr = oldCur;
         if (match(Tokenizer.Type.VAR_NAME)){
             return true;
@@ -346,6 +347,13 @@ public class Grammar2 {
             }
             return true;
         }
+        if (match(Tokenizer.Type.BOOL_NOT)) {
+            if (!parseBoolFactor()) {
+                return false;
+            }
+            return true;
+        }
+
 
         if (match(Tokenizer.Type.BOOLEAN)) {
             return true;

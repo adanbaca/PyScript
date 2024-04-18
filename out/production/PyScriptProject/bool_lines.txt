@@ -1,0 +1,14 @@
+let x = True
+let y = True
+let x = True and False
+let x = y or True
+let x = (y or (True and False))
+let x = not True
+let x = False and not y
+x = not True
+x = not (True and False)
+x = not not True
+let y = not True and not False or (not False or False)
+let x = True
+let y = x and False
+let z = x or y and not (x or True and (True and y))

@@ -16,3 +16,7 @@ let x = "hello world"
 let x = "hello " + "world"
 let x = "hello" + a
 x = 5
+x = not True
+x = not (True and False)
+x = not not True
+let y = not True and not False or (not False or False)

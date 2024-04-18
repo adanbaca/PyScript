@@ -10,8 +10,8 @@ public class Execute {
             List<Tokenizer.Token> tokens,
             HashMap<String, HashMap<String, Object>> globalVariables) {
         this.tokens = tokens;
-        String varName = tokens.get(1).lexeme;
-        curr = 3;
+        String varName = (tokens.get(0).type == Tokenizer.Type.LET) ? tokens.get(1).lexeme : tokens.get(0).lexeme;
+        curr = (tokens.get(0).type == Tokenizer.Type.LET) ? 3 : 2;
 
         boolean result = evaluateBoolExpression(globalVariables);
 
@@ -65,7 +65,7 @@ public class Execute {
                 throw new IllegalArgumentException("Variable is not of boolean type: " + varName);
             }
             return (boolean) varValue;
-        } else if (token.type == Tokenizer.Type.BOOL_OPERATOR && token.lexeme.equals("not")) {
+        } else if (token.type == Tokenizer.Type.BOOL_NOT) {
             curr++;
             return !evaluateBoolTerm(globalVariables);
         } else if (token.type == Tokenizer.Type.PAREN_OPEN) {
