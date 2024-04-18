@@ -1,5 +1,6 @@
 let x = 5
 let x = 5 + 4
+let y = 10
 let x = 5 + y
 let x = 5 * (4 + y)
 let x = (5 * (4+y))
@@ -8,15 +9,14 @@ let x = (5 > 4)
 let x = (5 > (4+2))
 let x = True
 let x = True and False
+let y = False
 let x = y or True
 let x = (y or (True and False))
 let x = not True
 let x = False and not y
 let x = "hello world"
-let x = "hello " + "world"
-let x = "hello" + a
+let x = "hello " @ "world"
+let a = "world"
+let x = "hello" @ a
 x = 5
-x = not True
-x = not (True and False)
-x = not not True
-let y = not True and not False or (not False or False)
+print(x)

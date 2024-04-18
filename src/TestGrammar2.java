@@ -12,7 +12,7 @@ public class TestGrammar2 {
 
     public static void main(String[] args) throws ParseException{
         Tokenizer tokenizer = new Tokenizer();
-        String filePath = "./src/bool_lines.txt"; // File path
+        String filePath = "./src/lines.txt"; // File path
         List<Tokenizer.Token> tokens = new ArrayList<>();
         Grammar2 grammar = new Grammar2(tokens);
         // Using try-with-resources to automatically close the BufferedReader

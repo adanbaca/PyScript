@@ -16,6 +16,7 @@ class Tokenizer {
         ASSIGNMENT("^="),
         NUM_OPERATOR("^[+\\-*/%]"),
         BOOL_OPERATOR("^(and|or)\\b"),
+        STR_OPERATOR("^@"),
         BOOL_NOT("^(not)\\b"),
         BRACE_OPEN("^\\{"),
         BRACE_CLOSE("^\\}"),
@@ -27,6 +28,7 @@ class Tokenizer {
         ELSE("^else\\b"),
         ELIF("^elif\\b"),
         LET("^let\\b"),
+        INPUT("^[bsi]Input$"),
         VAR_NAME("^[a-zA-Z]\\w*"),
         WHITESPACE("^\\s+"),
         EOF("");
@@ -84,7 +86,7 @@ class Tokenizer {
 
     public static void main(String[] args) throws ParseException {
         Tokenizer tokenizer = new Tokenizer();
-        String input = "let x = True and not (False or True)";
+        String input = "print(5>3)";
         ArrayList<Token> tokens = tokenizer.tokenize(input);
         Grammar2 grammar = new Grammar2(tokens);
 
@@ -159,7 +161,16 @@ public class Grammar2 {
         } else if (match(Tokenizer.Type.LOOP)) {
             return parseLoop();
         } else if (match(Tokenizer.Type.PRINT)) {
-            return parsePrint();
+            if(parsePrint()){
+                try {
+                    exec.executePrintExpression(tokens, globalVariables);
+                    System.out.println("Returning");
+                    return true;
+                } catch (IllegalArgumentException _) {
+                    System.out.println("parsePrintError");
+                }
+            }
+            else return false;
         } else if (match(Tokenizer.Type.VAR_NAME)) {
             curr = 0;
             return parseAssign();
@@ -209,11 +220,10 @@ public class Grammar2 {
     }
 
     private boolean parsePrint(){
-        boolean expr = false;
-        if (match(Tokenizer.Type.PRINT)&&match(Tokenizer.Type.PAREN_OPEN)){
-            expr = parseExpression();
+        if (match(Tokenizer.Type.PAREN_OPEN)){
+            return parseExpression();
         }
-        return expr&&match(Tokenizer.Type.PAREN_CLOSE);
+        return false;
     }
 
     private boolean parseAssign(){
@@ -229,25 +239,75 @@ public class Grammar2 {
 
     private boolean parseExpression(){
         int oldCur = curr;
-        if (parseBoolExpression()) {
-            globalVariables = exec.executeBoolExpression(tokens, globalVariables);
-            System.out.println("Returning");
-            System.out.println();
-            return true;
-        }
-        curr = oldCur;
-        oldCur = curr;
         if (parseNumExpression()) {
-            return true;
+            if (curr == tokens.size()-1) {
+                try {
+                    globalVariables = exec.executeNumExpression(tokens, globalVariables);
+                    System.out.println("Returning");
+                    return true;
+                } catch (IllegalArgumentException _) {
+                    System.out.println("parseNumError");
+                }
+            }else if (match(Tokenizer.Type.PAREN_CLOSE)&&tokens.get(0).type== Tokenizer.Type.PRINT){
+                return true;
+            }
+        }
+
+        curr = oldCur;
+        oldCur = curr;
+        if (parseBoolExpression()) {
+            if(curr == tokens.size()-1){
+                try {
+                    globalVariables = exec.executeBoolExpression(tokens, globalVariables);
+    //            System.out.println("Returning");
+                    System.out.println();
+                    return true;
+                } catch (IllegalArgumentException _) {
+                    System.out.println("parseBoolError");
+                }
+
+            }else if (match(Tokenizer.Type.PAREN_CLOSE)&&tokens.get(0).type== Tokenizer.Type.PRINT){
+                return true;
+            }
+
         }
         curr = oldCur;
         oldCur = curr;
-        if (parseStrExpression()){
-            return true;
+        if (parseInputExpression()){
+            if (curr == tokens.size()-1){
+                try {
+                    globalVariables = exec.executeInputExpression(tokens, globalVariables);
+                    //            System.out.println("Returning");
+                    System.out.println();
+                    return true;
+                } catch (IllegalArgumentException _) {
+                    System.out.println("execInputError");
+                }
+                return true;
+            }else if (match(Tokenizer.Type.PAREN_CLOSE)&&tokens.get(0).type== Tokenizer.Type.PRINT){
+                return true;
+            }
         }
-        // evaluate string expressi}
+        curr = oldCur;
+        oldCur = curr;
+        if (parseStrExpression() ){
+            if (curr == tokens.size()-1){
+                try {
+                    globalVariables = exec.executeStrExpression(tokens, globalVariables);
+//            System.out.println("Returning");
+                    System.out.println();
+                    return true;
+                } catch (IllegalArgumentException _) {
+                    System.out.println("execStrError");
+                }
+                return true;
+            }else if(match(Tokenizer.Type.PAREN_CLOSE)&&tokens.get(0).type== Tokenizer.Type.PRINT){
+                return true;
+            }
+        }
         curr = oldCur;
         if (match(Tokenizer.Type.VAR_NAME)){
+            if(!match(Tokenizer.Type.PAREN_CLOSE)&&tokens.get(0).type== Tokenizer.Type.PRINT) return false;
             return true;
         }
         return false;
@@ -411,7 +471,7 @@ public class Grammar2 {
         }
 
         // Check for additional str terms
-        while (match(Tokenizer.Type.NUM_OPERATOR)) {
+        while (match(Tokenizer.Type.STR_OPERATOR)) {
             if (!parseStrTerm()) {
                 return false;
             }
@@ -427,7 +487,7 @@ public class Grammar2 {
         }
 
         // Check for additional str factors
-        while (match(Tokenizer.Type.NUM_OPERATOR)) {
+        while (match(Tokenizer.Type.STR_OPERATOR)) {
             if (!parseStrFactor()) {
                 return false;
             }
@@ -460,6 +520,12 @@ public class Grammar2 {
             return true;
         }
 
+        return false;
+    }
+    private boolean parseInputExpression(){
+        if (match(Tokenizer.Type.INPUT)) {
+            return true;
+        }
         return false;
     }
 }
