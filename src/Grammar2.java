@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Stack;
 
 //Make sure to check if we are at the end of a line correctly or not
 
@@ -104,6 +105,12 @@ public class Grammar2 {
 
     public List<Tokenizer.Token> tokens;
     public HashMap<String, HashMap<String, Object>> globalVariables = new HashMap<String, HashMap<String, Object>>();
+    private Stack<ArrayList<ArrayList<Tokenizer.Token>>> condBlockStack= new Stack<ArrayList<ArrayList<Tokenizer.Token>>>();
+    private Stack<ArrayList<ArrayList<Tokenizer.Token>>> condStmtStack= new Stack<ArrayList<ArrayList<Tokenizer.Token>>>();
+    private Stack<ArrayList<ArrayList<Tokenizer.Token>>> curBlockStack= new Stack<ArrayList<ArrayList<Tokenizer.Token>>>();
+    private Stack<ArrayList<ArrayList<Tokenizer.Token>>> curStmtStack= new Stack<ArrayList<ArrayList<Tokenizer.Token>>>();
+    private Stack<Tokenizer.Token> bracketStack = new Stack<Tokenizer.Token>();
+    private boolean inCondBlock = false;
     private Execute exec = new Execute();
     public int curr = 0;
 
@@ -192,14 +199,14 @@ public class Grammar2 {
         if (!match(Tokenizer.Type.PAREN_OPEN)||!parseExpression()||!match(Tokenizer.Type.PAREN_CLOSE)){
             return false;
         }
-        if (!match(Tokenizer.Type.BRACE_OPEN)||!parseBlock()||!match(Tokenizer.Type.BRACE_CLOSE)){
+        if (!match(Tokenizer.Type.BRACE_OPEN)){
             return false;
         }
         if (match(Tokenizer.Type.ELIF)){
             return parseCond();
         }
         if (match(Tokenizer.Type.ELSE)){
-            if (!match(Tokenizer.Type.BRACE_OPEN)||!parseBlock()||!match(Tokenizer.Type.BRACE_CLOSE)){
+            if (!match(Tokenizer.Type.BRACE_OPEN)){
                 return false;
             }
         }
