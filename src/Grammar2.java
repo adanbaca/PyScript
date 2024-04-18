@@ -154,7 +154,8 @@ public class Grammar2 {
     }
 
     private boolean parseBlock(){
-        if (!(tokens.getFirst().type==Tokenizer.Type.ELIF)&&!(tokens.getFirst().type==Tokenizer.Type.ELSE)&&!inCondBlock){
+        if (!(tokens.getFirst().type==Tokenizer.Type.ELIF)&&!(tokens.getFirst().type==Tokenizer.Type.ELSE)&&
+                !(tokens.getFirst().type==Tokenizer.Type.BRACE_CLOSE)&&!inCondBlock){
             condChain = false;
             ranChain = false;
             conditionalStmtStack.clear();
@@ -190,10 +191,7 @@ public class Grammar2 {
                 System.out.println("parseConditionalError");
             }
         }
-        if (tokens.getFirst().type==Tokenizer.Type.ELSE){
-            condChain = false;
-            ranChain = false;
-        }
+
         return true;
     }
 
