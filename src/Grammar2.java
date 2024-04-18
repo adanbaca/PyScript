@@ -1,5 +1,6 @@
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,6 +16,7 @@ class Tokenizer {
         ASSIGNMENT("^="),
         NUM_OPERATOR("^[+\\-*/%]"),
         BOOL_OPERATOR("^(not|and|or)\\b"),
+        BOOL_NOT("^(not)\\b"),
         BRACE_OPEN("^\\{"),
         BRACE_CLOSE("^\\}"),
         PAREN_OPEN("^\\("),
@@ -82,7 +84,7 @@ class Tokenizer {
 
     public static void main(String[] args) throws ParseException {
         Tokenizer tokenizer = new Tokenizer();
-        String input = "let x = (a and True)";
+        String input = "let x = True and False";
         ArrayList<Token> tokens = tokenizer.tokenize(input);
         Grammar2 grammar = new Grammar2(tokens);
 
@@ -90,6 +92,7 @@ class Tokenizer {
             System.out.println(token);
         }
         grammar.parse();
+        System.out.println(grammar.globalVariables);
     }
 
 }
@@ -98,7 +101,9 @@ public class Grammar2 {
 
 
     public List<Tokenizer.Token> tokens;
-    private int curr = 0;
+    public HashMap<String, HashMap<String, Object>> globalVariables = new HashMap<String, HashMap<String, Object>>();
+    private Execute exec = new Execute();
+    public int curr = 0;
 
     public Grammar2(List<Tokenizer.Token> tokens){
         this.tokens = tokens;
@@ -116,7 +121,7 @@ public class Grammar2 {
     }
 
     public void addTokens(List<Tokenizer.Token> newTokens) {
-        tokens.addAll(newTokens);
+        tokens = newTokens;
     }
 
     private boolean atEnd(){
@@ -129,6 +134,7 @@ public class Grammar2 {
                 throw new ParseException("Syntax Error", 0);
             }
         }
+        curr = 0;
         return true;
     }
 
@@ -222,18 +228,24 @@ public class Grammar2 {
 
     private boolean parseExpression(){
         int oldCur = curr;
+        if (parseBoolExpression()) {
+            globalVariables = exec.executeBoolExpression(tokens, globalVariables);
+            System.out.println("Returning");
+            System.out.println();
+            return true;
+        }
+        curr = oldCur;
+        oldCur = curr;
         if (parseNumExpression()) {
             return true;
         }
         curr = oldCur;
         oldCur = curr;
-        if (parseBoolExpression()){
+        if (parseStrExpression()){
             return true;
         }
-//        else if (parseStrExpression()){
             // evaluate string expressi}
         curr = oldCur;
-        oldCur = curr;
         if (match(Tokenizer.Type.VAR_NAME)){
             return true;
         }
@@ -285,7 +297,9 @@ public class Grammar2 {
 
         // Check for a parenthesized expression
         if (match(Tokenizer.Type.PAREN_OPEN)) {
+            int oldCur = curr;
             if (!parseNumExpression()) {
+                curr = oldCur;
                 return false;
             }
             if (!match(Tokenizer.Type.PAREN_CLOSE)) {
@@ -298,12 +312,10 @@ public class Grammar2 {
     }
 
     private boolean parseBoolExpression() {
-        // Parse a bool term
         if (!parseBoolTerm()) {
             return false;
         }
 
-        // Check for additional bool terms
         while (match(Tokenizer.Type.BOOL_OPERATOR)) {
             if (!parseBoolTerm()) {
                 return false;
@@ -314,12 +326,10 @@ public class Grammar2 {
     }
 
     private boolean parseBoolTerm() {
-        // Check for a bool factor
         if (!parseBoolFactor()) {
             return false;
         }
 
-        // Check for additional bool factors
         while (match(Tokenizer.Type.BOOL_OPERATOR)) {
             if (!parseBoolFactor()) {
                 return false;
@@ -330,24 +340,31 @@ public class Grammar2 {
     }
 
     private boolean parseBoolFactor() {
-        // Check for a boolean literal
+        if (match(Tokenizer.Type.BOOL_OPERATOR)) {
+            if (!parseBoolFactor()) {
+                return false;
+            }
+            return true;
+        }
+
         if (match(Tokenizer.Type.BOOLEAN)) {
             return true;
         }
 
-        // Check for a comparison expression
+        int oldCurr = curr;
         if (parseComparisonExpression()) {
             return true;
         }
+        curr = oldCurr;
 
-        // Check for a variable name
         if (match(Tokenizer.Type.VAR_NAME)) {
             return true;
         }
 
-        // Check for a parenthesized bool expression
         if (match(Tokenizer.Type.PAREN_OPEN)) {
+            oldCurr = curr;
             if (!parseBoolExpression()) {
+                curr = oldCurr;
                 return false;
             }
             if (!match(Tokenizer.Type.PAREN_CLOSE)) {
@@ -363,22 +380,81 @@ public class Grammar2 {
         // Parse the first operand
         int oldCur = curr;
         if (!parseNumExpression()) {
+            curr = oldCur;
             return false;
         }
-        curr = oldCur;
-        oldCur = curr;
         // Check for a comparison operator
         if (!match(Tokenizer.Type.COMPARISON_OPERATOR)) {
             return false;
         }
-
+        oldCur = curr;
         if (!parseNumExpression()) {
+            curr = oldCur;
             return false;
         }
-        curr = oldCur;
 
         return true;
     }
+
+    private boolean parseStrExpression() {
+        // Parse a str term
+        if (!parseStrTerm()) {
+            return false;
+        }
+
+        // Check for additional str terms
+        while (match(Tokenizer.Type.NUM_OPERATOR)) {
+            if (!parseStrTerm()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean parseStrTerm() {
+        // Check for a str factor
+        if (!parseStrFactor()) {
+            return false;
+        }
+
+        // Check for additional str factors
+        while (match(Tokenizer.Type.NUM_OPERATOR)) {
+            if (!parseStrFactor()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean parseStrFactor() {
+        // Check for a string literal
+        if (match(Tokenizer.Type.STRING)) {
+            return true;
+        }
+
+        // Check for a variable name
+        if (match(Tokenizer.Type.VAR_NAME)) {
+            return true;
+        }
+
+        // Check for a parenthesized str expression
+        if (match(Tokenizer.Type.PAREN_OPEN)) {
+            int oldCurr = curr;
+            if (!parseStrExpression()) {
+                curr = oldCurr;
+                return false;
+            }
+            if (!match(Tokenizer.Type.PAREN_CLOSE)) {
+                return false;
+            }
+            return true;
+        }
+
+        return false;
+    }
 }
+
 
 
