@@ -1,3 +1,4 @@
+import java.text.ParseException;
 import java.util.*;
 
 
@@ -328,18 +329,20 @@ public class Execute {
     }
     public HashMap<String, HashMap<String, Object>> executeConditionalExpression(
             HashMap<String, HashMap<String, Object>> globalVariables,
-            Stack<ArrayList<List<Tokenizer.Token>>> conditionalBlockStack,
-            Stack<ArrayList<List<Tokenizer.Token>>> conditionalStmtStack) {
+            ArrayList<ArrayList<List<Tokenizer.Token>>> conditionalBlockList,
+            ArrayList<ArrayList<List<Tokenizer.Token>>> conditionalStmtList,
+            int size) throws ParseException {
 
         boolean result;
         int index = -1;
         ranChain=false;
-        ArrayList<List<Tokenizer.Token>> conditions = conditionalStmtStack.pop();
-        ArrayList<List<Tokenizer.Token>> blocks = conditionalBlockStack.pop();
+        ArrayList<List<Tokenizer.Token>> conditions = conditionalStmtList.get(size);
+        ArrayList<List<Tokenizer.Token>> blocks = conditionalBlockList.get(size);
         for (List<Tokenizer.Token> condition : conditions){
             if (condition.getFirst().type==Tokenizer.Type.ELSE){
                 index = conditions.lastIndexOf(condition);
                 ranChain=true;
+                blocks = conditionalBlockList.get(index);
                 break;
             }
             curr=0;
@@ -348,15 +351,27 @@ public class Execute {
             if (result){
                 index = conditions.lastIndexOf(condition);
                 ranChain=true;
+                blocks = conditionalBlockList.get(index);
                 break;
             }
         }
-        String varName;
-        Object[] res;
+        if (ranChain) conditionalStmtList.remove(size);
         if (index>-1){
-           for (int i =1; i<blocks.size()-1;i++){
-            curr = 0;
-            tokens = blocks.get(i);
+            Grammar2 nested = new Grammar2();
+            nested.addVariables(globalVariables);
+            for (int i =1; i<blocks.size()-1;i++) {
+                curr = 0;
+                tokens = blocks.get(i);
+                nested.addTokens(tokens);
+                for (Tokenizer.Token token : tokens) {
+                    System.out.println(token);
+                }
+                nested.parse();
+            }
+            conditionalBlockList.remove(size);
+            System.out.println(nested.globalVariables);
+            globalVariables.putAll(nested.globalVariables);
+            /*
             if(tokens.getFirst().type == Tokenizer.Type.LET||tokens.getFirst().type == Tokenizer.Type.VAR_NAME){
                 varName = (tokens.get(0).type == Tokenizer.Type.LET) ? tokens.get(1).lexeme : tokens.get(0).lexeme;
                 curr = (tokens.get(0).type == Tokenizer.Type.LET) ? 3 : 2;
@@ -372,10 +387,8 @@ public class Execute {
             }else{
                 throw new IllegalArgumentException("Invalid input inside conditional statement");
             }
-           }
+             */
         }
-
-
         return globalVariables;
     }
     private Object[] evaluateConditionalExpression(HashMap<String, HashMap<String, Object>> globalVariables) {
@@ -414,9 +427,5 @@ public class Execute {
     public boolean getRanChain(){
         return ranChain;
     }
-
-
-
-
 
 }

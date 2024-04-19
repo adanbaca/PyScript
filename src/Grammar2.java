@@ -104,12 +104,12 @@ public class Grammar2 {
 
 
     public List<Tokenizer.Token> tokens;
-    public HashMap<String, HashMap<String, Object>> globalVariables = new HashMap<String, HashMap<String, Object>>();
-    public Stack<ArrayList<List<Tokenizer.Token>>> conditionalBlockStack = new Stack<ArrayList<List<Tokenizer.Token>>>();
-    public Stack<ArrayList<List<Tokenizer.Token>>> conditionalStmtStack = new Stack<ArrayList<List<Tokenizer.Token>>>();
-    public ArrayList<List<Tokenizer.Token>> curConditionalBlockList = new ArrayList<List<Tokenizer.Token>>();
-    public ArrayList<List<Tokenizer.Token>> curConditionalStmtsList = new ArrayList<List<Tokenizer.Token>>();
-    private Stack<Tokenizer.Type> bracketStack = new Stack<Tokenizer.Type>();
+    public HashMap<String, HashMap<String, Object>> globalVariables = new HashMap<>();
+    public ArrayList<ArrayList<List<Tokenizer.Token>>> conditionalBlockList = new ArrayList<>();
+    public ArrayList<ArrayList<List<Tokenizer.Token>>> conditionalStmtList = new ArrayList<>();
+    public ArrayList<List<Tokenizer.Token>> curConditionalBlockList = new ArrayList<>();
+    public ArrayList<List<Tokenizer.Token>> curConditionalStmtsList = new ArrayList<>();
+    private Stack<Tokenizer.Type> bracketStack = new Stack<>();
     private boolean inCondBlock = false;
     private boolean condChain = false;
     private boolean ranChain = false;
@@ -119,6 +119,7 @@ public class Grammar2 {
     public Grammar2(List<Tokenizer.Token> tokens){
         this.tokens = tokens;
     }
+    public Grammar2(){}
 
     private boolean match(Tokenizer.Type expected){
         if (atEnd()){
@@ -134,7 +135,18 @@ public class Grammar2 {
     public void addTokens(List<Tokenizer.Token> newTokens) {
         tokens = newTokens;
     }
-
+    public void addVariables(HashMap<String, HashMap<String, Object>> newVariables){
+        for (String variable : newVariables.keySet()){
+            globalVariables.put(variable, newVariables.get(variable));
+        }
+    }
+    private ArrayList<List<Tokenizer.Token>> copyList(ArrayList<List<Tokenizer.Token>> orig){
+        ArrayList<List<Tokenizer.Token>> newList = new ArrayList<List<Tokenizer.Token>>();
+        for (List<Tokenizer.Token> tokens : orig){
+            newList.add(tokens);
+        }
+        return newList;
+    }
     private boolean atEnd(){
         return curr >= tokens.size() || tokens.get(curr).type == Tokenizer.Type.EOF;
     }
@@ -158,8 +170,8 @@ public class Grammar2 {
                 !(tokens.getFirst().type==Tokenizer.Type.BRACE_CLOSE)&&!inCondBlock){
             condChain = false;
             ranChain = false;
-            conditionalStmtStack.clear();
-            conditionalBlockStack.clear();
+            conditionalStmtList.clear();
+            conditionalBlockList.clear();
         }
         while (!atEnd()){
             if (!parseStatement()){
@@ -168,26 +180,39 @@ public class Grammar2 {
         }
         if (inCondBlock){
             curConditionalBlockList.add(tokens);
-            if (tokens.getFirst().type==Tokenizer.Type.BRACE_CLOSE){
+            if (tokens.getFirst().type==Tokenizer.Type.BRACE_CLOSE ){
                 bracketStack.pop();
-                conditionalBlockStack.push((ArrayList<List<Tokenizer.Token>>) curConditionalBlockList.clone());
-                curConditionalBlockList.clear();
-                conditionalStmtStack.push((ArrayList<List<Tokenizer.Token>>) curConditionalStmtsList.clone());
-                curConditionalStmtsList.clear();
-                if (bracketStack.isEmpty() && atEnd()) {
-                    inCondBlock = false;
+                if (bracketStack.isEmpty()) {
+                    ArrayList<List<Tokenizer.Token>> copyList = copyList(curConditionalBlockList);
+                    conditionalBlockList.add(copyList);
+                    curConditionalBlockList.clear();
+                    copyList = copyList(curConditionalStmtsList);
+                    for (int i = 0; i < copyList.size(); i++) {
+                        if (conditionalStmtList.size() <= i) {
+                            conditionalStmtList.add(new ArrayList<>());
+                        }
+                        conditionalStmtList.get(i).add(copyList.get(i));
+                    }
+                    curConditionalStmtsList.clear();
+                    if (bracketStack.isEmpty() && atEnd()) {
+                        inCondBlock = false;
+
+                    }
                 }
             }
         }
-        if (!inCondBlock && !conditionalBlockStack.isEmpty()){
+        if (!inCondBlock && !conditionalBlockList.isEmpty()){
             try {
                 if((condChain&&!ranChain)||!condChain) {
-                    globalVariables = exec.executeConditionalExpression(globalVariables, conditionalBlockStack, conditionalStmtStack);
+                    globalVariables = exec.executeConditionalExpression(globalVariables, conditionalBlockList,
+                            conditionalStmtList, bracketStack.size());
                     ranChain = (exec.getRanChain()) ? true : ranChain;
                     System.out.println("Returning");
                     return true;
                 }
             } catch (IllegalArgumentException _) {
+                System.out.println("parseConditionalError");
+            } catch (ParseException e) {
                 System.out.println("parseConditionalError");
             }
         }
@@ -205,7 +230,6 @@ public class Grammar2 {
                 condChain = false;
                 ranChain = false;
             }
-            curConditionalStmtsList.clear();
             return parseCond();
         } else if (match(Tokenizer.Type.LOOP)) {
             return parseLoop();

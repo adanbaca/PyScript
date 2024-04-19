@@ -13,8 +13,8 @@ public class TestGrammar2 {
     public static void main(String[] args) throws ParseException{
         Tokenizer tokenizer = new Tokenizer();
         String filePath = "./src/cond_lines.txt"; // File path
-        List<Tokenizer.Token> tokens = new ArrayList<>();
-        Grammar2 grammar = new Grammar2(tokens);
+        List<Tokenizer.Token> tokens;
+        Grammar2 grammar = new Grammar2();
         // Using try-with-resources to automatically close the BufferedReader
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
