@@ -1,11 +1,27 @@
 let x = 3
 if (x < 4) {
-    if (x>3){
+    x = 4
+    if (x>2){
         x = 5
+        if (x<5){
+            let z = 3
+        }
+        elif (x>5){
+            let p = 2
+        }
+        else{
+            let c = 10
+        }
     }
 }
 elif (x>4) {
     x = 7
+    if (x>5){
+        x=3
+        if(x<4){
+            x=1
+        }
+    }
 }
 else{
     let y = 3

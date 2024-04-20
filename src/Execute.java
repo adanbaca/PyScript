@@ -331,13 +331,13 @@ public class Execute {
             HashMap<String, HashMap<String, Object>> globalVariables,
             ArrayList<ArrayList<List<Tokenizer.Token>>> conditionalBlockList,
             ArrayList<ArrayList<List<Tokenizer.Token>>> conditionalStmtList,
-            int size) throws ParseException {
+            boolean loop) throws ParseException {
 
         boolean result;
         int index = -1;
         ranChain=false;
-        ArrayList<List<Tokenizer.Token>> conditions = conditionalStmtList.get(size);
-        ArrayList<List<Tokenizer.Token>> blocks = conditionalBlockList.get(size);
+        ArrayList<List<Tokenizer.Token>> conditions = conditionalStmtList.get(0);
+        ArrayList<List<Tokenizer.Token>> blocks = conditionalBlockList.get(0);
         for (List<Tokenizer.Token> condition : conditions){
             if (condition.getFirst().type==Tokenizer.Type.ELSE){
                 index = conditions.lastIndexOf(condition);
@@ -355,75 +355,29 @@ public class Execute {
                 break;
             }
         }
-        if (ranChain) conditionalStmtList.remove(size);
+        if (ranChain^loop) conditionalStmtList.remove(0);
         if (index>-1){
             Grammar2 nested = new Grammar2();
             nested.addVariables(globalVariables);
-            for (int i =1; i<blocks.size()-1;i++) {
+            for (int i = 1; i<blocks.size()-1;i++) {
                 curr = 0;
                 tokens = blocks.get(i);
                 nested.addTokens(tokens);
                 for (Tokenizer.Token token : tokens) {
-                    System.out.println(token);
+                    //System.out.println(token);
                 }
                 nested.parse();
             }
-            conditionalBlockList.remove(size);
             System.out.println(nested.globalVariables);
+            if (loop) executeConditionalExpression(nested.globalVariables, conditionalBlockList,conditionalStmtList,loop);
             globalVariables.putAll(nested.globalVariables);
-            /*
-            if(tokens.getFirst().type == Tokenizer.Type.LET||tokens.getFirst().type == Tokenizer.Type.VAR_NAME){
-                varName = (tokens.get(0).type == Tokenizer.Type.LET) ? tokens.get(1).lexeme : tokens.get(0).lexeme;
-                curr = (tokens.get(0).type == Tokenizer.Type.LET) ? 3 : 2;
-                res = evaluateConditionalExpression(globalVariables);
-                HashMap<String, Object> varData = new HashMap<>();
-                varData.put("val", res[0]);
-                varData.put("type", res[1]);
-                globalVariables.put(varName, varData);
-            } else if (tokens.getFirst().type == Tokenizer.Type.PRINT){
-                curr = 2;
-                String printable = evaluatePrintExpression(globalVariables);
-                System.out.println(printable);
-            }else{
-                throw new IllegalArgumentException("Invalid input inside conditional statement");
-            }
-             */
+            if (ranChain^loop&&!conditionalBlockList.isEmpty()) conditionalBlockList.remove(0);
+
         }
+
         return globalVariables;
     }
-    private Object[] evaluateConditionalExpression(HashMap<String, HashMap<String, Object>> globalVariables) {
-        if (curr >= tokens.size()) {
-            throw new IllegalArgumentException("Print statement missing an expression.");
-        }
-        Object[] ret = new Object[2];
-        Tokenizer.Token token = tokens.get(curr);
-        Object result;
-        String type;
 
-        if (token.type == Tokenizer.Type.STRING || token.type == Tokenizer.Type.VAR_NAME && globalVariables.get(token.lexeme).get("type").equals("string")) {
-            result = evaluateStrExpression(globalVariables);
-            type = "string";
-        } else if (token.type == Tokenizer.Type.INT || (token.type == Tokenizer.Type.VAR_NAME && globalVariables.get(token.lexeme).get("type").equals("int"))) {
-            int oldCur = curr;
-            try {
-                result = (evaluateComparisonExpression(globalVariables)) ? "True" : "False";
-                type = "bool";
-            } catch (IllegalArgumentException e) {
-                // If comparison fails, evaluate as a numeric expression
-                curr = oldCur;  // Reset curr to re-evaluate this token as a numeric expression
-                result = evaluateNumExpression(globalVariables);
-                type = "int";
-            }
-        } else if (token.type == Tokenizer.Type.BOOLEAN || token.type == Tokenizer.Type.BOOL_OPERATOR || (token.type == Tokenizer.Type.VAR_NAME && globalVariables.get(token.lexeme).get("type").equals("bool"))) {
-            result = (evaluateBoolExpression(globalVariables)) ? "True" : "False";
-            type = "bool";
-        } else {
-            throw new IllegalArgumentException("Unsupported expression type for print: " + token.type);
-        }
-        ret[0]=result;
-        ret[1]=type;
-        return ret;
-    }
     public boolean getRanChain(){
         return ranChain;
     }

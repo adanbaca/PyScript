@@ -203,9 +203,10 @@ public class Grammar2 {
         }
         if (!inCondBlock && !conditionalBlockList.isEmpty()){
             try {
-                if((condChain&&!ranChain)||!condChain) {
+                if((condChain&& !ranChain )||!condChain) {
+                    boolean loop = conditionalBlockList.get(0).get(0).get(0).type==Tokenizer.Type.LOOP;
                     globalVariables = exec.executeConditionalExpression(globalVariables, conditionalBlockList,
-                            conditionalStmtList, bracketStack.size());
+                            conditionalStmtList,loop);
                     ranChain = (exec.getRanChain()) ? true : ranChain;
                     System.out.println("Returning");
                     return true;
@@ -226,18 +227,17 @@ public class Grammar2 {
         } else if (match(Tokenizer.Type.IF)||match(Tokenizer.Type.ELIF)||match(Tokenizer.Type.ELSE)) {
             if (tokens.getFirst().type==Tokenizer.Type.ELIF||tokens.getFirst().type==Tokenizer.Type.ELSE){
                 condChain = true;
-            }else{
+            }else if (!inCondBlock){
                 condChain = false;
                 ranChain = false;
             }
             return parseCond();
         } else if (match(Tokenizer.Type.LOOP)) {
-            return parseLoop();
+            return parseCond();
         } else if (match(Tokenizer.Type.PRINT)) {
             if(parsePrint()){
                 try {
                     if (!inCondBlock) exec.executePrintExpression(tokens, globalVariables);
-                    else curConditionalBlockList.add(tokens);
                     System.out.println("Returning");
                     return true;
                 } catch (IllegalArgumentException _) {
@@ -342,7 +342,8 @@ public class Grammar2 {
                 if (tokens.get(0).type == Tokenizer.Type.PRINT) {
                     return true;
                 } else if (match(Tokenizer.Type.BRACE_OPEN) && (tokens.get(0).type == Tokenizer.Type.IF ||
-                        tokens.get(0).type == Tokenizer.Type.ELIF)) {
+                        tokens.get(0).type == Tokenizer.Type.ELIF ||
+                        tokens.get(0).type == Tokenizer.Type.LOOP)) {
                     bracketStack.push(Tokenizer.Type.BRACE_OPEN);
                     curConditionalStmtsList.add(tokens.subList(1,curr-1));
                     return true;

@@ -12,22 +12,22 @@ public class TestGrammar2 {
 
     public static void main(String[] args) throws ParseException{
         Tokenizer tokenizer = new Tokenizer();
-        String filePath = "./src/cond_lines.txt"; // File path
+        String filePath = "./src/loop_lines.txt"; // File path
         List<Tokenizer.Token> tokens;
         Grammar2 grammar = new Grammar2();
         // Using try-with-resources to automatically close the BufferedReader
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             while ((line = reader.readLine()) != null) {
-                System.out.println(grammar.curr);
+                //System.out.println(grammar.curr);
                 // Process each line
                 tokens = tokenizer.tokenize(line);
                 grammar.addTokens(tokens);
                 for (Tokenizer.Token token : tokens) {
-                    System.out.println(token);
+                    //System.out.println(token);
                 }
                 grammar.parse();
-                System.out.println(grammar.globalVariables);
+               // System.out.println(grammar.globalVariables);
 
             }
         } catch (IOException e) {
