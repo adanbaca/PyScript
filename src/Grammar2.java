@@ -24,6 +24,7 @@ class Tokenizer {
         PAREN_OPEN("^\\("),
         PAREN_CLOSE("^\\)"),
         LOOP("^while\\b"),
+        PUTS("^puts\\b"),
         PRINT("^print\\b"),
         IF("^if\\b"),
         ELSE("^else\\b"),
@@ -92,10 +93,10 @@ class Tokenizer {
         Grammar2 grammar = new Grammar2(tokens);
 
         for (Token token : tokens) {
-            System.out.println(token);
+            //System.out.println(token);
         }
         grammar.parse();
-        System.out.println(grammar.globalVariables);
+        //System.out.println(grammar.globalVariables);
     }
 
 }
@@ -208,13 +209,13 @@ public class Grammar2 {
                     globalVariables = exec.executeConditionalExpression(globalVariables, conditionalBlockList,
                             conditionalStmtList,loop);
                     ranChain = (exec.getRanChain()) ? true : ranChain;
-                    System.out.println("Returning");
+                    //System.out.println("Returning");
                     return true;
                 }
             } catch (IllegalArgumentException _) {
-                System.out.println("parseConditionalError");
+                System.out.println("parseConditionalError:I");
             } catch (ParseException e) {
-                System.out.println("parseConditionalError");
+                System.out.println("parseConditionalError:P");
             }
         }
 
@@ -234,11 +235,11 @@ public class Grammar2 {
             return parseCond();
         } else if (match(Tokenizer.Type.LOOP)) {
             return parseCond();
-        } else if (match(Tokenizer.Type.PRINT)) {
+        } else if (match(Tokenizer.Type.PRINT)||match(Tokenizer.Type.PUTS)) {
             if(parsePrint()){
                 try {
                     if (!inCondBlock) exec.executePrintExpression(tokens, globalVariables);
-                    System.out.println("Returning");
+                    //System.out.println("Returning");
                     return true;
                 } catch (IllegalArgumentException _) {
                     System.out.println("parsePrintError");
@@ -315,7 +316,7 @@ public class Grammar2 {
             if (curr == tokens.size()-1) {
                 try {
                     if (!inCondBlock) globalVariables = exec.executeNumExpression(tokens, globalVariables);
-                    System.out.println("Returning");
+                    //System.out.println("Returning");
                     return true;
                 } catch (IllegalArgumentException _) {
                     System.out.println("parseNumError");
@@ -332,7 +333,7 @@ public class Grammar2 {
                 try {
                     if (!inCondBlock) globalVariables = exec.executeBoolExpression(tokens, globalVariables);
                     //            System.out.println("Returning");
-                    System.out.println();
+                    //System.out.println();
                     return true;
                 } catch (IllegalArgumentException _) {
                     System.out.println("parseBoolError");
@@ -358,7 +359,7 @@ public class Grammar2 {
                 try {
                     if (!inCondBlock) globalVariables = exec.executeInputExpression(tokens, globalVariables);
                     //            System.out.println("Returning");
-                    System.out.println();
+                    //System.out.println();
                     return true;
                 } catch (IllegalArgumentException _) {
                     System.out.println("execInputError");
@@ -375,19 +376,19 @@ public class Grammar2 {
                 try {
                     if (!inCondBlock) globalVariables = exec.executeStrExpression(tokens, globalVariables);
 //            System.out.println("Returning");
-                    System.out.println();
+                    //System.out.println();
                     return true;
                 } catch (IllegalArgumentException _) {
                     System.out.println("execStrError");
                 }
                 return true;
-            }else if(match(Tokenizer.Type.PAREN_CLOSE)&&tokens.get(0).type== Tokenizer.Type.PRINT){
+            }else if(match(Tokenizer.Type.PAREN_CLOSE)&&(tokens.get(0).type== Tokenizer.Type.PRINT||tokens.get(0).type== Tokenizer.Type.PUTS)){
                 return true;
             }
         }
         curr = oldCur;
         if (match(Tokenizer.Type.VAR_NAME)){
-            if(!match(Tokenizer.Type.PAREN_CLOSE)&&tokens.get(0).type== Tokenizer.Type.PRINT) return false;
+            if(!match(Tokenizer.Type.PAREN_CLOSE)&&(tokens.get(0).type== Tokenizer.Type.PRINT||tokens.get(0).type== Tokenizer.Type.PUTS)) return false;
             return true;
         }
         return false;

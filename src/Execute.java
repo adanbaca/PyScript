@@ -72,9 +72,9 @@ public class Execute {
         } else if (token.type == Tokenizer.Type.PAREN_OPEN) {
             curr++;
             boolean result = evaluateBoolExpression(globalVariables);
-            if (curr >= tokens.size() || tokens.get(curr).type != Tokenizer.Type.PAREN_CLOSE) {
+            /*if (curr >= tokens.size() || tokens.get(curr).type != Tokenizer.Type.PAREN_CLOSE) {
                 throw new IllegalArgumentException("Invalid boolean expression: expected closing parenthesis");
-            }
+            }*/
             curr++;
             return result;
         } else if (token.type == Tokenizer.Type.INT || token.type == Tokenizer.Type.VAR_NAME) {
@@ -86,7 +86,9 @@ public class Execute {
 
     private boolean evaluateComparisonExpression(HashMap<String, HashMap<String, Object>> globalVariables) {
         int leftOperand = evaluateNumExpression(globalVariables);
-
+        while(tokens.get(curr).type==Tokenizer.Type.PAREN_CLOSE){
+            curr++;
+        }
         if (curr >= tokens.size() || tokens.get(curr).type != Tokenizer.Type.COMPARISON_OPERATOR) {
             throw new IllegalArgumentException("Invalid comparison expression: expected comparison operator");
         }
@@ -188,9 +190,9 @@ public class Execute {
         } else if (token.type == Tokenizer.Type.PAREN_OPEN) {
             curr++;
             int result = evaluateNumExpression(globalVariables);
-            if (curr >= tokens.size() || tokens.get(curr).type != Tokenizer.Type.PAREN_CLOSE) {
+            /*if (curr >= tokens.size() || tokens.get(curr).type != Tokenizer.Type.PAREN_CLOSE) {
                 throw new IllegalArgumentException("Invalid numeric expression: expected closing parenthesis");
-            }
+            }*/
             curr++;
             return result;
         } else {
@@ -251,9 +253,9 @@ public class Execute {
         } else if (token.type == Tokenizer.Type.PAREN_OPEN) {
             curr++;
             String result = evaluateStrExpression(globalVariables);
-            if (curr >= tokens.size() || tokens.get(curr).type != Tokenizer.Type.PAREN_CLOSE) {
+            /*if (curr >= tokens.size() || tokens.get(curr).type != Tokenizer.Type.PAREN_CLOSE) {
                 throw new IllegalArgumentException("Invalid string expression: expected closing parenthesis");
-            }
+            }*/
             curr++;
             return result;
         } else {
@@ -270,8 +272,10 @@ public class Execute {
         String result = evaluateInputExpression(globalVariables);
 
         HashMap<String, Object> varData = new HashMap<>();
-        varData.put("val", result);
+
         String type = (tokens.get(curr).lexeme.startsWith("s")) ? "string" : (tokens.get(curr).lexeme.startsWith("b")) ? "bool" : "int";
+
+        varData.put("val", (type.equals("int") ? Integer.valueOf(result): (type.equals("bool") ? Boolean.valueOf(result): result)));
         varData.put("type", type);
         globalVariables.put(varName, varData);
 
@@ -288,7 +292,8 @@ public class Execute {
         curr = 2;
 
         String printable = evaluatePrintExpression(globalVariables);
-        System.out.println(printable);
+        if (tokens.getFirst().type==Tokenizer.Type.PUTS) System.out.print(printable);
+        else System.out.println(printable);
 
 
     }
@@ -321,9 +326,9 @@ public class Execute {
 
         if (curr < tokens.size() && tokens.get(curr).type == Tokenizer.Type.PAREN_CLOSE) {
             curr++;
-        } else {
+        } /*else {
             throw new IllegalArgumentException("Expected closing parenthesis after print expression");
-        }
+        }*/
 
         return result;
     }
@@ -368,7 +373,7 @@ public class Execute {
                 }
                 nested.parse();
             }
-            System.out.println(nested.globalVariables);
+            //System.out.println(nested.globalVariables);
             if (loop) executeConditionalExpression(nested.globalVariables, conditionalBlockList,conditionalStmtList,loop);
             globalVariables.putAll(nested.globalVariables);
             if (ranChain^loop&&!conditionalBlockList.isEmpty()) conditionalBlockList.remove(0);

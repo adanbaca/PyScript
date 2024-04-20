@@ -1,0 +1,38 @@
+let a = iInput
+let b = iInput
+
+if (a>b) {
+    let max = a
+}
+else{
+    let max = b
+}
+let sum = a + b
+let difference = b - a
+let product = a * b
+
+let GCD = 1
+let i = 1
+while(i<=max){
+    if ((a%i==0) and (b%i==0)){
+        GCD = i
+    }
+    i = i + 1
+}
+let LCM = 1
+while(((LCM%a)!=0) or ((LCM%b)!=0)){
+    LCM = LCM + 1
+}
+puts("Max = ")
+print(max)
+puts("Sum = ")
+print(sum)
+puts("Difference = ")
+print(difference)
+puts("Product = ")
+print(product)
+puts("GCD = ")
+print(GCD)
+puts("LCM = ")
+print(LCM)
+

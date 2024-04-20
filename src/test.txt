@@ -1,0 +1,6 @@
+let a = 5
+let b = 3
+let LCM = 5
+let x = ((a%i) == 0)
+x = (((LCM%a)!=0) or ((LCM%b)!=0))
+puts(x)
