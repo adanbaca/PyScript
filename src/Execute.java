@@ -1,14 +1,25 @@
 import java.text.ParseException;
 import java.util.*;
 
-
+/**
+ * class: Execute
+ * The class we use to execute the grammar.
+ * This is called within Grammar2 after the input
+ * is validated.
+ */
 public class Execute {
     private int curr = 0;
     private List<Tokenizer.Token> tokens;
     public Execute() {}
     private boolean ranChain;
 
-
+    /**
+     * Method: executeBoolExpression - method that handles execution of boolean expressions
+     * @param tokens - list of tokens from the parser
+     * @param globalVariables - hashmap of variables, their types and values, that is maintained
+     *                        over the entire program
+     * @return globalVariables after the necessary values have been updated
+     */
     public HashMap<String, HashMap<String, Object>> executeBoolExpression(
             List<Tokenizer.Token> tokens,
             HashMap<String, HashMap<String, Object>> globalVariables) {
@@ -26,6 +37,13 @@ public class Execute {
         return globalVariables;
     }
 
+    /**
+     * Method: evaluateBoolExpression - helper method that actually handles evaluation
+     *          of the expression
+     * @param globalVariables- hashmap of variables, their types and values, that is maintained
+     *                         over the entire program
+     * @return result - boolean value correspoding to expression
+     */
     private boolean evaluateBoolExpression(HashMap<String, HashMap<String, Object>> globalVariables) {
         boolean result = evaluateBoolTerm(globalVariables);
 
@@ -47,6 +65,12 @@ public class Execute {
         return result;
     }
 
+    /**
+     * Method: evaluateBoolTerm - helper method that evaluates a single term in an expression
+     * @param globalVariables - hashmap of variables, their types and values, that is maintained
+     *                          over the entire program
+     * @return result - boolean corresponding to value of the term
+     */
     private boolean evaluateBoolTerm(HashMap<String, HashMap<String, Object>> globalVariables) {
         if (curr >= tokens.size()) {
             throw new IllegalArgumentException("Invalid boolean expression: unexpected end of expression");
@@ -84,6 +108,13 @@ public class Execute {
         }
     }
 
+    /**
+     * Method: evaluateComparisonExpression - method that handles evalutation of numerical comparison with a
+     *         boolean result
+     * @param globalVariables - hashmap of variables, their types and values, that is maintained
+     *                         over the entire program
+     * @return boolean corresponding to the value of the comparison expression
+     */
     private boolean evaluateComparisonExpression(HashMap<String, HashMap<String, Object>> globalVariables) {
         int leftOperand = evaluateNumExpression(globalVariables);
         while(tokens.get(curr).type==Tokenizer.Type.PAREN_CLOSE){
@@ -116,6 +147,13 @@ public class Execute {
         }
     }
 
+    /**
+     * Method: executeNumExpression - method that handles execution of integer expressions
+     * @param tokens - list of tokens from the parser
+     * @param globalVariables - hashmap of variables, their types and values, that is maintained
+     *                        over the entire program
+     * @return globalVariables after the necessary values have been updated
+     */
     public HashMap<String, HashMap<String, Object>> executeNumExpression(
             List<Tokenizer.Token> tokens,
             HashMap<String, HashMap<String, Object>> globalVariables) {
@@ -132,7 +170,13 @@ public class Execute {
 
         return globalVariables;
     }
-
+    /**
+     * Method: evaluateNumExpression - helper method that actually handles evaluation
+     *          of the expression
+     * @param globalVariables - hashmap of variables, their types and values, that is maintained
+     *                        over the entire program
+     * @return result - integer value corresponding to result of the expression
+     */
     private int evaluateNumExpression(HashMap<String, HashMap<String, Object>> globalVariables) {
         int result = evaluateNumTerm(globalVariables);
 
@@ -166,6 +210,12 @@ public class Execute {
         return result;
     }
 
+    /**
+     * Method: evaluateNumTerm -  helper method that evaluates a single term in an expression
+     * @param globalVariables- hashmap of variables, their types and values, that is maintained
+     *                        over the entire program
+     * @return result - an integer corresponding to the value of the term
+     */
     private int evaluateNumTerm(HashMap<String, HashMap<String, Object>> globalVariables) {
         if (curr >= tokens.size()) {
             throw new IllegalArgumentException("Invalid numeric expression: unexpected end of expression");
@@ -200,6 +250,13 @@ public class Execute {
         }
     }
 
+    /**
+     * Method: executeStrExpression - method that handles execution of string expressions
+     * @param tokens - list of tokens from the parser
+     * @param globalVariables - hashmap of variables, their types and values, that is maintained
+     *                        over the entire program
+     * @return globalVariables after the necessary values have been updated
+     */
     public HashMap<String, HashMap<String, Object>> executeStrExpression(
             List<Tokenizer.Token> tokens,
             HashMap<String, HashMap<String, Object>> globalVariables) {
@@ -217,6 +274,13 @@ public class Execute {
         return globalVariables;
     }
 
+    /**
+     * Method: evaluateStrExpression -helper method that actually handles evaluation
+     *         of the expression
+     * @param globalVariables - hashmap of variables, their types and values, that is maintained
+     *                        over the entire program
+     * @return result - string after necessary concatenation
+     */
     private String evaluateStrExpression(HashMap<String, HashMap<String, Object>> globalVariables) {
         String result = evaluateStrTerm(globalVariables);
 
@@ -229,6 +293,12 @@ public class Execute {
         return result;
     }
 
+    /**
+     * Method: evaluateStrTerm - helper method that evaluates a single term in an expression
+     * @param globalVariables - hashmap of variables, their types and values, that is maintained
+     *                        over the entire program
+     * @return result - string corresponding to term in the expression
+     */
     private String evaluateStrTerm(HashMap<String, HashMap<String, Object>> globalVariables) {
         if (curr >= tokens.size()) {
             throw new IllegalArgumentException("Invalid string expression: unexpected end of expression");
@@ -262,6 +332,14 @@ public class Execute {
             throw new IllegalArgumentException("Invalid string term: " + token.lexeme);
         }
     }
+
+    /**
+     * Method: executeInputExpression - method that handles execution of input statements
+     * @param tokens - list of tokens from the parser
+     * @param globalVariables - hashmap of variables, their types and values, that is maintained
+     *                        over the entire program
+     * @return globalVariables after the necessary values have been updated
+     */
     public HashMap<String, HashMap<String, Object>> executeInputExpression(
             List<Tokenizer.Token> tokens,
             HashMap<String, HashMap<String, Object>> globalVariables) {
@@ -281,10 +359,24 @@ public class Execute {
 
         return globalVariables;
     }
+
+    /**
+     * Method: evaluateInputExpression - helper method that takes console input in
+     * @param globalVariables - hashmap of variables, their types and values, that is maintained
+     *          over the entire program
+     * @return String corresponding to the next line from the scanner
+     */
     private String evaluateInputExpression(HashMap<String, HashMap<String, Object>> globalVariables) {
         Scanner scanner = new Scanner(System.in);
         return scanner.nextLine();
     }
+
+    /**
+     * Method: executePrintExpression - method that executes printing/putting of expressions
+     * @param tokens - list of tokens from the parser
+     * @param globalVariables - hashmap of variables, their types and values, that is maintained
+     *                        over the entire program
+     */
     public void executePrintExpression(
             List<Tokenizer.Token> tokens,
             HashMap<String, HashMap<String, Object>> globalVariables) {
@@ -297,6 +389,14 @@ public class Execute {
 
 
     }
+
+    /**
+     * Method: evaluatePrintExpression - method that evaluates expression to be printed by calling
+     *         upon previous methods
+     * @param globalVariables - hashmap of variables, their types and values, that is maintained
+     *                        over the entire program
+     * @return result - Simplified value to be printed
+     */
     private String evaluatePrintExpression(HashMap<String, HashMap<String, Object>> globalVariables) {
         if (curr >= tokens.size()) {
             throw new IllegalArgumentException("Print statement missing an expression.");
@@ -332,6 +432,22 @@ public class Execute {
 
         return result;
     }
+
+    /**
+     * Method: executeConditionalExpression - method that handles execution of conditional blocks and
+     *         loops. This is done by evaluating the conditional and running the block as needed. For
+     *         loops the method calls itself as many times as the loop runs.
+     * @param globalVariables - hashmap of variables, their types and values, that is maintained
+     *                        over the entire program
+     * @param conditionalBlockList - ArrayList where each position is an entire block corresponding
+     *                             to a conditional or a loop
+     * @param conditionalStmtList - ArrayList where each position is a 'level' of nesting for conditionals
+     *                            for example the outermost statement would be at index 0 while each inner
+     *                            condition would be at the next index every time it is nested.
+     * @param loop - boolean flag denoting whether it is currently running a loop or not
+     * @return globalVariables after the necessary values have been updated
+     * @throws ParseException - exception to be caught in parser.
+     */
     public HashMap<String, HashMap<String, Object>> executeConditionalExpression(
             HashMap<String, HashMap<String, Object>> globalVariables,
             ArrayList<ArrayList<List<Tokenizer.Token>>> conditionalBlockList,
@@ -340,14 +456,15 @@ public class Execute {
 
         boolean result;
         int index = -1;
-        ranChain=false;
+        ranChain=false; //No statement in the conditional chain has been run
         ArrayList<List<Tokenizer.Token>> conditions = conditionalStmtList.get(0);
         ArrayList<List<Tokenizer.Token>> blocks = conditionalBlockList.get(0);
         for (List<Tokenizer.Token> condition : conditions){
+            //loops through each condition checking if it is true or 'else'
             if (condition.getFirst().type==Tokenizer.Type.ELSE){
                 index = conditions.lastIndexOf(condition);
                 ranChain=true;
-                blocks = conditionalBlockList.get(index);
+                blocks = conditionalBlockList.get(index); //retrieves appropriate block
                 break;
             }
             curr=0;
@@ -361,28 +478,38 @@ public class Execute {
             }
         }
         if (ranChain^loop) conditionalStmtList.remove(0);
+        //removes condition after it has been run or if a loop is done
         if (index>-1){
-            Grammar2 nested = new Grammar2();
+            //if it was run
+            Grammar2 nested = new Grammar2(); //new Grammar2 object to parse the block
             nested.addVariables(globalVariables);
             for (int i = 1; i<blocks.size()-1;i++) {
+                //Adds and parses tokens
                 curr = 0;
                 tokens = blocks.get(i);
                 nested.addTokens(tokens);
-                for (Tokenizer.Token token : tokens) {
+                //for (Tokenizer.Token token : tokens) {
                     //System.out.println(token);
-                }
+                //}
                 nested.parse();
             }
             //System.out.println(nested.globalVariables);
             if (loop) executeConditionalExpression(nested.globalVariables, conditionalBlockList,conditionalStmtList,loop);
+            // Recursively executes while loops
             globalVariables.putAll(nested.globalVariables);
+            // Updates variables
             if (ranChain^loop&&!conditionalBlockList.isEmpty()) conditionalBlockList.remove(0);
+            // Removes block from list after it has been used.
 
         }
 
         return globalVariables;
     }
 
+    /**
+     * Method: getRanChain - returns whether a conditional chain has been run
+     * @return ranChain
+     */
     public boolean getRanChain(){
         return ranChain;
     }
