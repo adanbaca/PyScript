@@ -1,0 +1,3 @@
+let x = 1
+let y = "hello world!"
+let z = True

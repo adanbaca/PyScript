@@ -1,0 +1,9 @@
+let x = 1
+if (x == 1) {
+print("No need for indentation!")
+}
+
+x = x + 1
+if (x == 2){
+    print("but you can have it if you want!")
+}
