@@ -155,7 +155,7 @@ class Tokenizer {
                 break;
             case BRACE_CLOSE:
                 if (bracketStack.isEmpty() || bracketStack.peek() != Type.BRACE_OPEN){
-                    String errorMsg = "Unmatched closing brace '}' at index " + index;
+                    String errorMsg = "Unmatched closing brace '}' at index " + index + "\n";
                     String errorIndicator = makeErrorIndicator(line, index);
                     errorMsg += errorIndicator;
                     throw new IllegalArgumentException(errorMsg);
@@ -164,7 +164,7 @@ class Tokenizer {
                 break;
             case PAREN_CLOSE:
                 if (bracketStack.isEmpty() || bracketStack.peek() != Type.PAREN_OPEN){
-                    String errorMsg = "Unmatched closing paren ')' at index " + index;
+                    String errorMsg = "Unmatched closing paren ')' at index " + index + "\n";
                     String errorIndicator = makeErrorIndicator(line, index);
                     errorMsg += errorIndicator;
                     throw new IllegalArgumentException(errorMsg);
