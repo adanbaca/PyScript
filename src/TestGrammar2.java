@@ -4,6 +4,7 @@ import java.io.FileReader;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 /**
  * class: TestGrammar2
@@ -15,7 +16,10 @@ public class TestGrammar2 {
 
     public static void main(String[] args) throws ParseException{
         Tokenizer tokenizer = new Tokenizer();
-        String filePath = "./src/Program2.txt"; // File path
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Enter PyScript file name:");
+        String file = scanner.nextLine();
+        String filePath = "./src/"+file; // File path
         ArrayList<Tokenizer.Token> tokens;
         Grammar2 grammar = new Grammar2();
         List<String> lines = new ArrayList<>();

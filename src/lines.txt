@@ -1,39 +1,39 @@
 let x = 5
-print(x)
+puts(x)
 let x = 5 + 4
-print(x)
+puts(x)
 let y = 10
 let x = 5 + y
-print(x)
+puts(x)
 let x = 5 * (4 + y)
-print(x)
+puts(x)
 let x = (5 * (4+y))
-print(x)
+puts(x)
 let x = 5 > 4
-print(x)
+puts(x)
 let x = (5 > 4)
-print(x)
+puts(x)
 let x = (5 > (4+2))
-print(x)
+puts(x)
 let x = True
-print(x)
+puts(x)
 let x = True and False
-print(x)
+puts(x)
 let y = False
 let x = y or True
-print(x)
+puts(x)
 let x = (y or (True and False))
-print(x)
+puts(x)
 let x = not True
-print(x)
+puts(x)
 let x = False and not y
-print(x)
+puts(x)
 let x = "hello world"
-print(x)
+puts(x)
 let x = "hello " @ "world"
-print(x)
+puts(x)
 let a = "world"
 let x = "hello" @ a
-print(x)
+puts(x)
 x = 5
-print(x)
+puts(x)
