@@ -1,0 +1,9 @@
+let x = 10
+if (x <= 10){
+    x = x + 1
+    if (x < 12){
+        let y = 2
+    }
+    print(y)
+}
+let x = 2;
