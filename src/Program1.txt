@@ -23,16 +23,16 @@ let LCM = 1
 while(((LCM%a)!=0) or ((LCM%b)!=0)){
     LCM = LCM + 1
 }
-puts("Max = ")
-print(max)
-puts("Sum = ")
-print(sum)
-puts("Difference = ")
-print(difference)
-puts("Product = ")
-print(product)
-puts("GCD = ")
-print(GCD)
-puts("LCM = ")
-print(LCM)
+print("Max = ")
+puts(max)
+print("Sum = ")
+puts(sum)
+print("Difference = ")
+puts(difference)
+print("Product = ")
+puts(product)
+print("GCD = ")
+puts(GCD)
+print("LCM = ")
+puts(LCM)
 
