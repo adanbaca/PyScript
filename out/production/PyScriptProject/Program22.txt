@@ -1,0 +1,35 @@
+print("enter first number")
+let first = iInput
+
+print("enter second number")
+let second = iInput
+
+print("enter third number")
+let third = iInput
+
+let x = first
+let y = second
+
+
+while ( x <= second ) {
+	let i = 0
+	while ( i < x ) {
+		print("*")
+		i = i + 1
+	}
+	puts("")
+	x = x + 1
+}
+
+let sumMults = 0
+let j = 1
+
+while ( j <third ) {
+	
+	if ((j%first)==0 or (j%second)==0){
+            sumMults = sumMults + j
+        }
+        j = j +1
+}
+print(sumMults)
+	

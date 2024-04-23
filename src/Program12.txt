@@ -1,0 +1,54 @@
+print("enter first number")
+puts("")
+let x = iInput
+
+print("enter second number")
+let y = iInput
+
+let max = 0
+
+if(x < y) {
+	max = x	
+	print("Max = ")
+	print(x)
+	print("\n")
+}
+else {
+	max = y
+	print("Max = ")
+	print(y)
+	print("\n")
+}
+
+let sum = (x + y)
+print(sum)
+print("\n")
+
+let diff = (y - x)
+print(diff)
+print("\n")
+
+let prod = (x * y)
+print(prod)
+print("\n")
+
+let lcm = 0-1
+let maxAdd = max
+while (lcm < 0){
+	if ( (max % x) == 0 ) {
+		if ( (max % y) == 0) {
+			lcm = max
+		}
+	}
+	max = max + maxAdd
+}
+
+let gcd = (x * y) / lcm
+print("GCD = ")
+print(gcd)
+
+print("LCM = ")
+print(lcm)
+
+
+

@@ -292,7 +292,7 @@ public class Execute {
         curr = 2;
 
         String printable = evaluatePrintExpression(globalVariables);
-        if (tokens.getFirst().type==Tokenizer.Type.PUTS) System.out.print(printable);
+        if (tokens.getFirst().type==Tokenizer.Type.PRINT) System.out.print(printable);
         else System.out.println(printable);
 
 

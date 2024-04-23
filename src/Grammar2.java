@@ -32,7 +32,7 @@ class Tokenizer {
         LET("^let\\b"),
         INPUT("^[bsi]Input$"),
         VAR_NAME("^[a-zA-Z]\\w*"),
-        WHITESPACE("^\\s+"),
+        WHITESPACE("^[\\s\\t]+"),
         EOF("");
 
         public final String pattern;
