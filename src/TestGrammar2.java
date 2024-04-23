@@ -15,7 +15,7 @@ public class TestGrammar2 {
 
     public static void main(String[] args) throws ParseException{
         Tokenizer tokenizer = new Tokenizer();
-        String filePath = "./src/Program1.txt"; // File path
+        String filePath = "./src/Program2.txt"; // File path
         ArrayList<Tokenizer.Token> tokens;
         Grammar2 grammar = new Grammar2();
         List<String> lines = new ArrayList<>();

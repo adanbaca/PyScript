@@ -1,3 +1,4 @@
+x = y + 2
 let a = iInput
 let b = iInput
 let m = iInput
