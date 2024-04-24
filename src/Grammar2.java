@@ -371,9 +371,9 @@ public class Grammar2 {
                     return true;
                 }
             } catch (IllegalArgumentException _) {
-                System.out.println("parseConditionalError:I");
+                throw new IllegalArgumentException("Illegal argument in condition");
             } catch (ParseException e) {
-                System.out.println("parseConditionalError:P");
+                throw new IllegalArgumentException("Exception when running conditional block");
             }
         }
 
@@ -412,7 +412,7 @@ public class Grammar2 {
                     //System.out.println("Returning");
                     return true;
                 } catch (IllegalArgumentException _) {
-                    System.out.println("parsePrintError");
+                    throw new IllegalArgumentException("Invalid format for output");
                 }
             }
             else return false;
@@ -526,7 +526,7 @@ public class Grammar2 {
                     //System.out.println("Returning");
                     return true;
                 } catch (IllegalArgumentException _) {
-                    System.out.println("parseNumError");
+                    throw new IllegalArgumentException("Illegal argument in integer expression");
                 }
             }else if (match(Tokenizer.Type.PAREN_CLOSE)&&tokens.get(0).type== Tokenizer.Type.PRINT){
                 return true;
@@ -545,7 +545,7 @@ public class Grammar2 {
                     //System.out.println();
                     return true;
                 } catch (IllegalArgumentException _) {
-                    System.out.println("parseBoolError");
+                    throw new IllegalArgumentException("Illegal argument in boolean expression");
                 }
 
                 // evaluating the expression inside of a print or block statement
@@ -574,9 +574,9 @@ public class Grammar2 {
                     //System.out.println();
                     return true;
                 } catch (IllegalArgumentException _) {
-                    System.out.println("execInputError");
+                    throw new IllegalArgumentException("Illegal Argument in input statement");
                 }
-                return true;
+                //return true;
             }else if (match(Tokenizer.Type.PAREN_CLOSE)&&tokens.get(0).type== Tokenizer.Type.PRINT){
                 return true;
             }
@@ -593,9 +593,9 @@ public class Grammar2 {
                     //System.out.println();
                     return true;
                 } catch (IllegalArgumentException _) {
-                    System.out.println("execStrError");
+                    throw new IllegalArgumentException("Illegal argument in string expression");
                 }
-                return true;
+                //return true;
             }else if(match(Tokenizer.Type.PAREN_CLOSE)&&(tokens.get(0).type== Tokenizer.Type.PRINT||tokens.get(0).type== Tokenizer.Type.PUTS)){
                 return true;
             }
