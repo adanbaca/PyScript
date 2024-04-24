@@ -5,7 +5,7 @@ while (x>0){
     y=4
     while(y>0){
         y= y-1
-        print(x+y)
+        puts(x+y)
     }
 
 }

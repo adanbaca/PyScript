@@ -1,0 +1,14 @@
+puts("Give me a year or type 0 to quit")
+let n = iInput
+while(n!=0){
+    if ((n%400 == 0) or ((n%4 == 0) and (n%100!=0))){
+        print(n)
+        puts(" is a leap year.")
+    }
+    else{
+        print(n)
+        puts(" is not a leap year.")
+    }
+    puts("Enter new year")
+    n = iInput
+}
